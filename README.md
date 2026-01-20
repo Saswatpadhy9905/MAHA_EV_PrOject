@@ -6,7 +6,7 @@ A full-stack web application that runs a Python-based EV charging station compet
 
 ```
 opt/
-├── ev_tc_1.py              # Main Python simulation code
+├── ev_tc_2.py              # Main Python simulation code
 ├── run_simulation.py        # Wrapper to run simulation and output graphs
 ├── client/
 │   └── Opt-Frontend/       # React frontend
