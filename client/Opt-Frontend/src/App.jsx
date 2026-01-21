@@ -4,14 +4,18 @@ import './App.css'
 function App() {
   const [isRunning, setIsRunning] = useState(false)
   const [graphs, setGraphs] = useState([])
+  const [animation, setAnimation] = useState(null)
   const [error, setError] = useState(null)
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0)
+  const [showAnimation, setShowAnimation] = useState(true)
 
   const runSimulation = async () => {
     setIsRunning(true)
     setError(null)
     setGraphs([])
+    setAnimation(null)
     setCurrentGraphIndex(0)
+    setShowAnimation(true)
 
     try {
       console.log('Starting simulation...')
@@ -32,14 +36,21 @@ function App() {
       console.log('Response data:', data)
 
       if (data.success && data.data) {
-        // Handle both old format (data.graphs) and new format (data.data.graphs)
+        // Handle graphs
         const graphsArray = data.data.graphs || data.graphs || []
+        // Handle animation GIF
+        const animationData = data.data.animation || null
+        
+        if (animationData) {
+          console.log('Received animation GIF')
+          setAnimation(animationData)
+        }
         
         if (graphsArray.length > 0) {
           console.log(`Received ${graphsArray.length} graphs`)
           setGraphs(graphsArray)
           setCurrentGraphIndex(0)
-        } else {
+        } else if (!animationData) {
           setError(`No graphs generated. Message: ${data.data.message || 'Unknown'}`)
         }
       } else if (data.data && data.data.message) {
@@ -92,8 +103,45 @@ function App() {
         </div>
       )}
 
-      {graphs.length > 0 && (
+      {/* Animation Section */}
+      {animation && showAnimation && (
         <div className="results-container">
+          <div className="section-header">
+            <h2>🎬 Network Animation (100s Simulation)</h2>
+            <button 
+              className="toggle-button"
+              onClick={() => setShowAnimation(false)}
+            >
+              View Static Graphs →
+            </button>
+          </div>
+          <div className="animation-display">
+            <img 
+              src={`data:image/gif;base64,${animation}`}
+              alt="Network Animation"
+              className="animation-image"
+            />
+          </div>
+          <p className="animation-hint">
+            ⏱️ Animation shows time-varying x (density) and y (flow) values. Watch values change as simulation progresses!
+          </p>
+        </div>
+      )}
+
+      {/* Static Graphs Section */}
+      {graphs.length > 0 && (!animation || !showAnimation) && (
+        <div className="results-container">
+          {animation && (
+            <div className="section-header">
+              <h2>📊 Static Analysis Graphs</h2>
+              <button 
+                className="toggle-button"
+                onClick={() => setShowAnimation(true)}
+              >
+                ← View Animation
+              </button>
+            </div>
+          )}
           <div className="graph-viewer">
             <div className="graph-display">
               <img 
@@ -144,7 +192,7 @@ function App() {
         </div>
       )}
 
-      {graphs.length === 0 && !isRunning && !error && (
+      {graphs.length === 0 && !animation && !isRunning && !error && (
         <div className="empty-state">
           <div className="empty-icon">📊</div>
           <p>Click "Run Simulation" to generate graphs</p>

@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 # Capture all plots as base64 encoded images
 captured_figures = []
 figure_counter = 0
+animation_gif_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'network_animation.gif')
 
 def save_current_figure():
     """Save current matplotlib figure as base64 encoded PNG."""
@@ -50,14 +51,21 @@ try:
     sys.stderr = StringIO()
     
     # Import and run the simulation
-    from ev_tc_2 import run_simulation
+    from ev_tc_6 import run_simulation
     
-    # Run the simulation (all prints will be suppressed)
-    run_simulation()
+    # Run the simulation - save animation to GIF file
+    run_simulation(save_animation_path=animation_gif_path)
     
     # Restore stdout/stderr
     sys.stdout = old_stdout
     sys.stderr = old_stderr
+    
+    # Read animation GIF as base64 if it exists
+    animation_base64 = None
+    if os.path.exists(animation_gif_path):
+        with open(animation_gif_path, 'rb') as f:
+            animation_base64 = base64.b64encode(f.read()).decode('utf-8')
+        print(f"Animation GIF loaded ({len(animation_base64)//1024}KB)", file=sys.stderr)
     
     # Output only the JSON result
     if len(captured_figures) == 0:
@@ -66,7 +74,8 @@ try:
     output = {
         'success': True,
         'message': f'Simulation completed successfully. Captured {len(captured_figures)} graphs.',
-        'graphs': captured_figures
+        'graphs': captured_figures,
+        'animation': animation_base64  # Animated GIF as base64
     }
     print(json.dumps(output))
     
