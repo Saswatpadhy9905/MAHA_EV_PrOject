@@ -38,7 +38,7 @@ app.post('/api/run-simulation', (req, res) => {
   console.log(`[Server] Working directory: ${path.join(__dirname, '..')}`);
   
   // Determine Python executable - use venv in production, system python locally
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT || process.env.KOYEB_SERVICE_NAME;
   const pythonCmd = isProduction ? '/app/venv/bin/python' : 'python';
   
   console.log(`[Server] Using Python: ${pythonCmd}`);
