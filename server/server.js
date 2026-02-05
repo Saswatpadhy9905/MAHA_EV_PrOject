@@ -37,9 +37,16 @@ app.post('/api/run-simulation', (req, res) => {
   console.log(`[Server] Starting simulation from: ${pythonScriptPath}`);
   console.log(`[Server] Working directory: ${path.join(__dirname, '..')}`);
   
+  // Determine Python executable - use venv in production, system python locally
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT;
+  const pythonCmd = isProduction ? '/app/venv/bin/python' : 'python';
+  
+  console.log(`[Server] Using Python: ${pythonCmd}`);
+  
   // Spawn Python process
-  const pythonProcess = spawn('python', [pythonScriptPath], {
-    cwd: path.join(__dirname, '..')  // Set working directory to project root
+  const pythonProcess = spawn(pythonCmd, [pythonScriptPath], {
+    cwd: path.join(__dirname, '..'),  // Set working directory to project root
+    env: { ...process.env, PYTHONUNBUFFERED: '1' }
   });
   
   let dataOutput = '';
