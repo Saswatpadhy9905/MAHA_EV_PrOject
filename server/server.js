@@ -6,6 +6,9 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Build version for cache busting
+const BUILD_VERSION = '2.0.1';
+
 // CORS configuration - handle preflight properly for Koyeb/cloud platforms
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || '*',
@@ -25,13 +28,14 @@ app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', version: BUILD_VERSION, timestamp: new Date().toISOString() });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({ 
     message: 'EV Charging Station Simulation API',
+    version: BUILD_VERSION,
     endpoints: {
       health: '/health',
       simulation: '/api/run-simulation (POST)'
