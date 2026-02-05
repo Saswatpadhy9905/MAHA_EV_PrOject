@@ -95,11 +95,69 @@ Replace with your actual Railway URL from Step 1.
 
 ---
 
-## Step 3: Alternative Backend - Render.com
+## Step 3: Alternative Backend - Koyeb
 
-If you prefer Render over Railway:
+If you prefer Koyeb (free tier available):
 
-### 3.1 Create render.yaml
+### 3.1 Deploy to Koyeb
+
+1. Go to [koyeb.com](https://koyeb.com) and sign up
+2. Click **"Create App"** → **"GitHub"**
+3. Connect your GitHub and select your repository
+4. Configure the deployment:
+   - **Builder**: Dockerfile
+   - **Dockerfile Path**: `Dockerfile` (at root)
+   - **Port**: `3000`
+   - **Region**: Choose nearest
+
+### 3.2 Environment Variables
+
+Add these in the Koyeb dashboard:
+- `PORT` = `3000`
+- `NODE_ENV` = `production`
+- `KOYEB_SERVICE_NAME` = `opt-backend`
+
+### 3.3 Health Check Configuration
+
+Configure in Koyeb dashboard:
+- **Path**: `/health`
+- **Port**: `3000`
+- **Interval**: 30 seconds
+
+### 3.4 Get Your URL
+
+After deployment:
+1. Go to your app's overview in Koyeb
+2. Copy the URL (e.g., `https://opt-backend-yourname.koyeb.app`)
+3. **Update the frontend** `.env.production` file:
+   ```
+   VITE_API_URL=https://opt-backend-yourname.koyeb.app
+   ```
+4. **Also set in Vercel dashboard** → Environment Variables:
+   - `VITE_API_URL` = `https://opt-backend-yourname.koyeb.app`
+5. **Redeploy your Vercel frontend** after updating the environment variable
+
+### 3.5 Verify Koyeb Deployment
+
+Test your backend directly:
+```bash
+# Check health
+curl https://opt-backend-yourname.koyeb.app/health
+
+# Test API (should return method info, not 405)
+curl https://opt-backend-yourname.koyeb.app/api/run-simulation
+
+# Run simulation
+curl -X POST https://opt-backend-yourname.koyeb.app/api/run-simulation
+```
+
+---
+
+## Step 4: Alternative Backend - Render.com
+
+If you prefer Render:
+
+### 4.1 Create render.yaml
 
 Add to project root:
 ```yaml
@@ -114,7 +172,7 @@ services:
         value: production
 ```
 
-### 3.2 Deploy
+### 4.2 Deploy
 
 1. Go to [render.com](https://render.com) and sign up
 2. New → Web Service → Connect GitHub
@@ -145,10 +203,36 @@ The frontend will use `http://localhost:3000` for API calls in development.
 
 ## Troubleshooting
 
+### 405 Error (Method Not Allowed)
+This usually means the frontend is calling the wrong backend URL:
+
+1. **Check your Vercel Environment Variable**:
+   - Go to Vercel dashboard → Your Project → Settings → Environment Variables
+   - Verify `VITE_API_URL` is set to your **actual Koyeb/Railway URL**
+   - Must include `https://` prefix
+   
+2. **Redeploy after changing env vars**:
+   - Vercel doesn't auto-redeploy when you change env vars
+   - Click **Redeploy** after updating `VITE_API_URL`
+
+3. **Test your backend directly**:
+   ```bash
+   # Should return {"status":"ok",...}
+   curl https://your-backend.koyeb.app/health
+   
+   # Should return JSON, not 405
+   curl -X POST https://your-backend.koyeb.app/api/run-simulation
+   ```
+
+4. **Check browser console**:
+   - Open browser DevTools (F12)
+   - Look at Network tab to see which URL is being called
+   - If it shows `localhost:3000`, the env var isn't set correctly
+
 ### CORS Issues
 The backend already includes CORS middleware. If you face issues:
 - Ensure the frontend URL is correct
-- Check Railway/Render logs for errors
+- Check Railway/Render/Koyeb logs for errors
 
 ### Python Dependencies
 Make sure `requirements.txt` is in the project root with:

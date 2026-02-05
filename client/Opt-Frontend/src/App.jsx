@@ -72,7 +72,8 @@ function App() {
       }
     } catch (err) {
       console.error('Error:', err)
-      setError(`Error: ${err.message}. Make sure backend is running on localhost:3000`)
+      const apiUrl = API_URL || 'not configured'
+      setError(`Error: ${err.message}. Backend URL: ${apiUrl}. Check if VITE_API_URL is correctly set in .env.production`)
     } finally {
       clearInterval(progressInterval)
       setIsRunning(false)

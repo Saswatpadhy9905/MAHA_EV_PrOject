@@ -6,12 +6,21 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors({
+// CORS configuration - handle preflight properly for Koyeb/cloud platforms
+const corsOptions = {
   origin: process.env.CORS_ORIGIN || '*',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200  // Some legacy browsers choke on 204
+};
+
+// Apply CORS middleware
+app.use(cors(corsOptions));
+
+// Explicitly handle OPTIONS preflight for all routes
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 // Health check endpoint
@@ -27,6 +36,15 @@ app.get('/', (req, res) => {
       health: '/health',
       simulation: '/api/run-simulation (POST)'
     }
+  });
+});
+
+// Also respond to GET on /api/run-simulation with instructions (prevents 405 on wrong method)
+app.get('/api/run-simulation', (req, res) => {
+  res.json({ 
+    message: 'This endpoint requires a POST request to run the simulation',
+    method: 'POST',
+    endpoint: '/api/run-simulation'
   });
 });
 

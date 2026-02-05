@@ -1,0 +1,30 @@
+# Koyeb deployment configuration
+name: opt-backend
+
+service:
+  type: web
+  
+build:
+  dockerfile:
+    path: Dockerfile
+    
+ports:
+  - port: 3000
+    protocol: http
+    
+health_checks:
+  - type: http
+    path: /health
+    port: 3000
+    interval_seconds: 30
+    timeout_seconds: 10
+    healthy_threshold: 2
+    unhealthy_threshold: 3
+
+env:
+  - key: NODE_ENV
+    value: production
+  - key: PORT
+    value: "3000"
+  - key: KOYEB_SERVICE_NAME
+    value: opt-backend
