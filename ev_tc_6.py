@@ -1049,7 +1049,8 @@ def animate_network(G, x_traj, y_NEV_traj, y_EV_traj, q_s_traj, t,
     cmap = plt.cm.YlOrRd
     cmap2 = plt.cm.magma
 
-    fig, ax = plt.subplots(figsize=(12, 8))
+    fig, ax = plt.subplots(figsize=(12, 9))
+     # Leave space for title at top
 
     def draw_frame(anim_idx):
         frame_idx = frame_indices[anim_idx]
@@ -1058,7 +1059,7 @@ def animate_network(G, x_traj, y_NEV_traj, y_EV_traj, q_s_traj, t,
             print(f"      Frame {anim_idx+1}/{len(frame_indices)}...")
 
         ax.clear()
-        ax.set_title(f"Network (t={t[frame_idx]:.2f})", fontsize=16, fontweight='bold')
+        ax.text(3, 6.5, f"Network Animation (t={t[frame_idx]:.2f})", fontsize=18, fontweight='bold', ha='center')
 
         # Draw nodes
         node_colors = ['#ffeaa7'] * len(G.nodes())
@@ -1140,15 +1141,68 @@ def animate_network(G, x_traj, y_NEV_traj, y_EV_traj, q_s_traj, t,
 
         ax.set_xlim(min([p[0] for p in pos.values()]) - 1, max([p[0] for p in pos.values()]) + 1)
         ax.set_ylim(min([p[1] for p in pos.values()]) - 1, max([p[1] for p in pos.values()]) + 1)
-        ax.axis('off')
+        ax.set_xticks([])
+        ax.set_yticks([])
+        for spine in ax.spines.values():
+            spine.set_visible(False)
 
     # Create animation with downsampled frames
     fps = 10
     interval = 150  # ms between frames
     ani = FuncAnimation(fig, draw_frame, frames=len(frame_indices), interval=interval, repeat=True)
 
-    # Always show animation in matplotlib window
-    plt.tight_layout()
+    
+    # Save video if path provided
+    if save_path:
+        # Change extension to mp4
+        video_path = save_path.replace('.gif', '.mp4') if save_path.endswith('.gif') else save_path
+        if not video_path.endswith('.mp4'):
+            video_path += '.mp4'
+        
+        print(f"\n   Saving video to {video_path}...")
+        try:
+            import imageio
+            import io
+            
+            # Collect frames as images with fixed size
+            frames = []
+            for anim_idx in range(len(frame_indices)):
+                draw_frame(anim_idx)
+                buf = io.BytesIO()
+                # Use fixed dpi to get consistent dimensions
+                fig.savefig(buf, format='png', dpi=80, facecolor='white', 
+                           edgecolor='none', pad_inches=0.2)
+                buf.seek(0)
+                img = imageio.v3.imread(buf)
+                # Ensure even dimensions for video codec
+                h, w = img.shape[:2]
+                new_h = h - (h % 2)
+                new_w = w - (w % 2)
+                frames.append(img[:new_h, :new_w])
+                buf.close()
+            
+            # Write video with quality settings
+            imageio.mimwrite(video_path, frames, fps=fps, quality=8)
+            print(f"   ✓ Video saved: {video_path}")
+            import os
+            if os.path.exists(video_path):
+                print(f"   File size: {os.path.getsize(video_path) / (1024*1024):.2f} MB")
+                # Don't open file automatically - let the frontend handle it
+        except Exception as e:
+            print(f"   ✗ Error saving video: {e}")
+            # Fallback to GIF
+            print("   Trying GIF format instead...")
+            try:
+                gif_path = video_path.replace('.mp4', '.gif')
+                imageio.mimwrite(gif_path, frames, fps=fps, loop=0)
+                print(f"   ✓ GIF saved: {gif_path}")
+                # Don't open file automatically - let the frontend handle it
+            except Exception as e2:
+                print(f"   ✗ GIF also failed: {e2}")
+        plt.close(fig)
+        return video_path
+    
+    # Show interactive animation if not saving
     plt.show()
     return None
 # ============================================================================

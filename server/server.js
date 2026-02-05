@@ -7,12 +7,27 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json(true);
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'EV Charging Station Simulation API',
+    endpoints: {
+      health: '/health',
+      simulation: '/api/run-simulation (POST)'
+    }
+  });
 });
 
 // Run Python code endpoint
@@ -85,6 +100,7 @@ app.post('/api/run-simulation', (req, res) => {
 });
 
 // Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
