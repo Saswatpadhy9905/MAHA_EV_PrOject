@@ -1,5 +1,6 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import './App.css'
+import GifPlayer from './GifPlayer'
 
 // API URL - uses environment variable in production, localhost in development
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -14,33 +15,6 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(100)
   const [points, setPoints] = useState(400)
-  const [animationPaused, setAnimationPaused] = useState(false)
-  const [animationKey, setAnimationKey] = useState(0)
-  const [pausedFrame, setPausedFrame] = useState(null)
-  
-  const gifRef = useRef(null)
-  const canvasRef = useRef(null)
-
-  // Capture current GIF frame to canvas when pausing
-  const captureFrame = useCallback(() => {
-    if (gifRef.current && canvasRef.current) {
-      const canvas = canvasRef.current
-      const ctx = canvas.getContext('2d')
-      const img = gifRef.current
-      canvas.width = img.naturalWidth || img.width
-      canvas.height = img.naturalHeight || img.height
-      ctx.drawImage(img, 0, 0)
-      setPausedFrame(canvas.toDataURL('image/png'))
-    }
-  }, [])
-
-  const handlePauseToggle = () => {
-    if (!animationPaused) {
-      // Pausing - capture current frame
-      captureFrame()
-    }
-    setAnimationPaused(!animationPaused)
-  }
 
   const runSimulation = async () => {
     setIsRunning(true)
@@ -281,87 +255,7 @@ function App() {
               </button>
             </div>
             <div className="animation-display">
-              {/* Hidden canvas for frame capture */}
-              <canvas ref={canvasRef} style={{ display: 'none' }} />
-              
-              {/* Show GIF when playing, captured frame when paused */}
-              {!animationPaused ? (
-                <img 
-                  ref={gifRef}
-                  key={animationKey}
-                  src={`data:image/gif;base64,${animation}`}
-                  alt="Network Animation"
-                  className="animation-image"
-                  crossOrigin="anonymous"
-                />
-              ) : (
-                <div className="paused-frame-container">
-                  {pausedFrame ? (
-                    <img 
-                      src={pausedFrame}
-                      alt="Paused Frame"
-                      className="animation-image"
-                    />
-                  ) : (
-                    <img 
-                      ref={gifRef}
-                      src={`data:image/gif;base64,${animation}`}
-                      alt="Network Animation"
-                      className="animation-image"
-                      style={{ opacity: 0.7 }}
-                    />
-                  )}
-                  <div className="paused-indicator">
-                    <svg viewBox="0 0 24 24" fill="white" width="48" height="48">
-                      <rect x="6" y="4" width="4" height="16"/>
-                      <rect x="14" y="4" width="4" height="16"/>
-                    </svg>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="animation-controls">
-              <button 
-                className="control-btn" 
-                onClick={handlePauseToggle}
-                title={animationPaused ? 'Play' : 'Pause'}
-              >
-                {animationPaused ? (
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-                    <rect x="6" y="4" width="4" height="16"/>
-                    <rect x="14" y="4" width="4" height="16"/>
-                  </svg>
-                )}
-                <span>{animationPaused ? 'Play' : 'Pause'}</span>
-              </button>
-              <button 
-                className="control-btn" 
-                onClick={() => { setAnimationPaused(false); setPausedFrame(null); setAnimationKey(k => k + 1); }}
-                title="Restart"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                  <path d="M1 4v6h6"/>
-                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-                </svg>
-                <span>Restart</span>
-              </button>
-              <a 
-                className="control-btn" 
-                href={`data:image/gif;base64,${animation}`}
-                download="ev_simulation.gif"
-                title="Download"
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-                <span>Download</span>
-              </a>
+              <GifPlayer gifBase64={animation} simulationDuration={duration} />
             </div>
             <div className="animation-footer">
               <div className="legend-item">

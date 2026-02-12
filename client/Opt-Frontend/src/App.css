@@ -1190,3 +1190,218 @@ body {
     font-size: 1rem;
   }
 }
+
+/* ============================================
+   GIF Player - YouTube-like Controls
+   ============================================ */
+.gif-player {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.gif-player-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  color: var(--gray-500);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--gray-200);
+  border-top-color: var(--primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.gif-player-canvas-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--gray-900);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.gif-player-canvas {
+  max-width: 100%;
+  max-height: 60vh;
+  display: block;
+}
+
+.gif-player-play-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  padding: 24px;
+  transition: var(--transition-base);
+}
+
+.gif-player-canvas-container:hover .gif-player-play-overlay {
+  background: rgba(0, 0, 0, 0.8);
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.gif-player-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--gray-800);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.gif-control-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  cursor: pointer;
+  transition: var(--transition-base);
+  text-decoration: none;
+}
+
+.gif-control-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gif-control-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.gif-time-display {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
+  font-size: 0.85rem;
+  color: white;
+  min-width: 100px;
+}
+
+.gif-current-time {
+  color: white;
+}
+
+.gif-time-separator {
+  color: var(--gray-500);
+}
+
+.gif-total-time {
+  color: var(--gray-400);
+}
+
+.gif-seek-bar {
+  flex: 1;
+  height: 6px;
+  position: relative;
+  cursor: pointer;
+  border-radius: 3px;
+  margin: 0 8px;
+}
+
+.gif-seek-bar-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: var(--gray-600);
+  border-radius: 3px;
+}
+
+.gif-seek-bar-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--primary-500);
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.gif-seek-bar-handle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  background: var(--primary-400);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease;
+}
+
+.gif-seek-bar:hover .gif-seek-bar-handle {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.gif-seek-bar:hover .gif-seek-bar-progress {
+  background: var(--primary-400);
+}
+
+.gif-frame-display {
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  min-width: 90px;
+  text-align: right;
+}
+
+.gif-player-hint {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 12px;
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+  font-size: 0.75rem;
+  color: var(--gray-500);
+}
+
+.gif-player-hint span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 768px) {
+  .gif-player-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .gif-seek-bar {
+    order: 10;
+    width: 100%;
+    margin: 8px 0 0 0;
+  }
+
+  .gif-frame-display {
+    display: none;
+  }
+
+  .gif-player-hint {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+}
