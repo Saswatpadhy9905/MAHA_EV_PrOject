@@ -59,9 +59,21 @@ app.post('/api/run-simulation', (req, res) => {
   console.log(`[Server] Starting simulation from: ${pythonScriptPath}`);
   console.log(`[Server] Working directory: ${path.join(__dirname, '..')}`);
   
-  // Determine Python executable - use venv in production, system python locally
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT || process.env.KOYEB_SERVICE_NAME;
-  const pythonCmd = isProduction ? '/app/venv/bin/python' : 'python';
+  // Determine Python executable - check various venv locations for cloud platforms
+  const isProduction = process.env.NODE_ENV === 'production';
+  let pythonCmd = 'python';
+  
+  if (isProduction) {
+    // Try Render's venv path first, then fallback to /app/venv (Docker)
+    const fs = require('fs');
+    if (fs.existsSync('/opt/render/project/src/.venv/bin/python')) {
+      pythonCmd = '/opt/render/project/src/.venv/bin/python';
+    } else if (fs.existsSync('/app/venv/bin/python')) {
+      pythonCmd = '/app/venv/bin/python';
+    } else {
+      pythonCmd = 'python3';
+    }
+  }
   
   console.log(`[Server] Using Python: ${pythonCmd}`);
   

@@ -2,13 +2,11 @@
 # Deploy both frontend and backend from one repository
 
 services:
-  # Backend API (Node.js + Python)
+  # Backend API (Node.js + Python) - Uses Docker for reliable Python setup
   - type: web
     name: ev-simulation-api
-    runtime: node
-    rootDir: server
-    buildCommand: npm install && cd .. && pip install -r requirements.txt
-    startCommand: node server.js
+    runtime: docker
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: NODE_ENV
         value: production
