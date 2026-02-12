@@ -559,9 +559,9 @@ def run_simulation(save_animation_path=None):
     
     # Create visualizations
     print("\n5. Creating visualizations...")
-    print("   [VIZ 1/4] Network animation...")
-
-    create_network_animation(G, x_all, t_all, idx_to_edge, charging_stations, get_station_parameters, save_path=save_animation_path)
+    # Skip animation for cloud deployment (too heavy)
+    # print("   [VIZ 1/4] Network animation...")
+    # create_network_animation(G, x_all, t_all, idx_to_edge, charging_stations, get_station_parameters, save_path=save_animation_path)
     
     print("   [VIZ 2/4] Path demands...")
     plot_path_demands(t_all, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
