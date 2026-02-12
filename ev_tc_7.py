@@ -711,7 +711,8 @@ def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_p
         except Exception as e:
             print(f"   Warning: Could not save animation: {e}")
     
-    plt.show()
+    # Close figure without calling plt.show() to avoid capturing empty frame
+    plt.close('all')
 
 def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
                      lambda_od_EV, lambda_od_NEV):
