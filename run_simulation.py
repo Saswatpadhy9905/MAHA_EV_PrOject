@@ -5,7 +5,21 @@ import io
 import os
 from io import StringIO
 
-# Add current directory to path to import ev_tc_1
+# Parse command-line arguments for simulation parameters
+t_final_arg = None
+n_points_arg = None
+if len(sys.argv) > 1:
+    try:
+        t_final_arg = float(sys.argv[1])
+    except (ValueError, IndexError):
+        pass
+if len(sys.argv) > 2:
+    try:
+        n_points_arg = int(sys.argv[2])
+    except (ValueError, IndexError):
+        pass
+
+# Add current directory to path to import ev_tc_7
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import matplotlib
@@ -50,11 +64,11 @@ try:
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     
-    # Import and run the simulation (using ev_tc_6 for free tier - lighter)
-    from ev_tc_6 import run_simulation
+    # Import and run the simulation (using ev_tc_7 with configurable parameters)
+    from ev_tc_7 import run_simulation
     
-    # Run the simulation
-    run_simulation()
+    # Run the simulation with provided parameters
+    run_simulation(t_final=t_final_arg, n_points=n_points_arg)
     
     # Restore stdout/stderr
     sys.stdout = old_stdout

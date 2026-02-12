@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Build version for cache busting
-const BUILD_VERSION = '3.3.0-ev_tc_6';
+const BUILD_VERSION = '3.4.0-ev_tc_7';
 
 // CORS configuration - handle preflight properly for Koyeb/cloud platforms
 const corsOptions = {
@@ -56,7 +56,12 @@ app.get('/api/run-simulation', (req, res) => {
 app.post('/api/run-simulation', (req, res) => {
   const pythonScriptPath = path.join(__dirname, '..', 'run_simulation.py');
   
+  // Get simulation parameters from request body (with defaults)
+  const duration = parseFloat(req.body.duration) || 100;
+  const points = parseInt(req.body.points) || 400;
+  
   console.log(`[Server] Starting simulation from: ${pythonScriptPath}`);
+  console.log(`[Server] Parameters: duration=${duration}s, points=${points}`);
   console.log(`[Server] Working directory: ${path.join(__dirname, '..')}`);
   
   // Determine Python executable - check various venv locations for cloud platforms
@@ -89,8 +94,8 @@ app.post('/api/run-simulation', (req, res) => {
   
   console.log(`[Server] Using Python: ${pythonCmd}`);
   
-  // Spawn Python process
-  const pythonProcess = spawn(pythonCmd, [pythonScriptPath], {
+  // Spawn Python process with simulation parameters as arguments
+  const pythonProcess = spawn(pythonCmd, [pythonScriptPath, duration.toString(), points.toString()], {
     cwd: path.join(__dirname, '..'),  // Set working directory to project root
     env: { ...process.env, PYTHONUNBUFFERED: '1' }
   });

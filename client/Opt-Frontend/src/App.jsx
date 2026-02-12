@@ -12,6 +12,8 @@ function App() {
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0)
   const [showAnimation, setShowAnimation] = useState(true)
   const [progress, setProgress] = useState(0)
+  const [duration, setDuration] = useState(100)
+  const [points, setPoints] = useState(400)
 
   const runSimulation = async () => {
     setIsRunning(true)
@@ -32,11 +34,16 @@ function App() {
 
     try {
       console.log('Starting simulation...')
+      console.log(`Parameters: duration=${duration}s, points=${points}`)
       const response = await fetch(`${API_URL}/api/run-simulation`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          duration: duration,
+          points: points
+        })
       })
 
       console.log('Response status:', response.status)
@@ -145,8 +152,35 @@ function App() {
                 <div className="info-icon">⏱️</div>
                 <div className="info-text">
                   <span className="info-label">Duration</span>
-                  <span className="info-value">100s Sim</span>
+                  <span className="info-value">{duration}s Sim</span>
                 </div>
+              </div>
+            </div>
+
+            <div className="param-inputs">
+              <div className="param-input-group">
+                <label htmlFor="duration">Duration (seconds)</label>
+                <input
+                  type="number"
+                  id="duration"
+                  value={duration}
+                  onChange={(e) => setDuration(Math.max(10, Math.min(400, parseInt(e.target.value) || 100)))}
+                  min="10"
+                  max="400"
+                  disabled={isRunning}
+                />
+              </div>
+              <div className="param-input-group">
+                <label htmlFor="points">Time Points</label>
+                <input
+                  type="number"
+                  id="points"
+                  value={points}
+                  onChange={(e) => setPoints(Math.max(50, Math.min(1000, parseInt(e.target.value) || 400)))}
+                  min="50"
+                  max="1000"
+                  disabled={isRunning}
+                />
               </div>
             </div>
 

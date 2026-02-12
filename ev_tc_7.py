@@ -408,12 +408,17 @@ def coupled_dynamics(t, state, params):
 # ============================================================================
 # SIMULATION RUNNER
 # ============================================================================
-def run_simulation(save_animation_path=None):
+def run_simulation(save_animation_path=None, t_final=None, n_points=None):
     """Main simulation with segmented ODE integration
     
     Args:
         save_animation_path: If provided, saves animation to this file path (e.g., 'network_animation.gif')
+        t_final: Simulation duration (default: T_FINAL)
+        n_points: Number of time points (default: N_TIME_POINTS)
     """
+    # Use provided parameters or defaults
+    sim_t_final = t_final if t_final is not None else T_FINAL
+    sim_n_points = n_points if n_points is not None else N_TIME_POINTS
     
     print("\n" + "="*70)
     print("EV CHARGING STATION COMPETITION SIMULATION")
@@ -481,9 +486,10 @@ def run_simulation(save_animation_path=None):
     
     # SEGMENTED INTEGRATION
     print("\n3. Running segmented simulation across phases...")
+    print(f"   Duration: {sim_t_final}s, Time points: {sim_n_points}")
     
     # Simplified: single phase for faster cloud execution
-    phase_boundaries = [0, T_FINAL]
+    phase_boundaries = [0, sim_t_final]
     
     t_all = []
     x_all = []
@@ -501,7 +507,7 @@ def run_simulation(save_animation_path=None):
         
         print(f"\n   Phase {phase_idx + 1}: t = {t_start} to {t_end}")
         
-        n_points_phase = int(N_TIME_POINTS * (t_end - t_start) / T_FINAL)
+        n_points_phase = int(sim_n_points * (t_end - t_start) / sim_t_final)
         t_eval_phase = np.linspace(t_start, t_end, n_points_phase)
         
         sol = solve_ivp(
