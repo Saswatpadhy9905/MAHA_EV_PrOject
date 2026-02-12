@@ -50,8 +50,8 @@ try:
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     
-    # Import and run the simulation
-    from ev_tc_6 import run_simulation
+    # Import and run the simulation (using ev_tc_7)
+    from ev_tc_7 import run_simulation
     
     # Run the simulation - save animation to GIF file
     run_simulation(save_animation_path=animation_gif_path)
