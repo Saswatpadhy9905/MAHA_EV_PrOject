@@ -4,10 +4,10 @@ nixPkgs = ["python311", "python311Packages.pip", "nodejs_20"]
 
 [phases.install]
 cmds = [
-    "cd server && npm install",
-    "python3.11 -m venv /opt/render/project/src/.venv",
+    "python3 -m venv /opt/render/project/src/.venv || python3.11 -m venv /opt/render/project/src/.venv",
     "/opt/render/project/src/.venv/bin/pip install --upgrade pip setuptools wheel",
-    "/opt/render/project/src/.venv/bin/pip install -r requirements.txt"
+    "/opt/render/project/src/.venv/bin/pip install -r requirements.txt",
+    "cd server && npm install"
 ]
 
 [phases.build]
@@ -18,6 +18,7 @@ cmd = "cd server && node server.js"
 
 [variables]
 NIXPACKS_PYTHON_VERSION = "3.11"
+NODE_ENV = "production"
 PATH = "/opt/render/project/src/.venv/bin:$PATH"
 PYTHONPATH = "/opt/render/project/src"
 PYTHONPATH = "/app"
