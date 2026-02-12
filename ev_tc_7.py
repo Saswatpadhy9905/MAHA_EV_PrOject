@@ -19,11 +19,12 @@ LINK_CAPACITY = 0.5
 LATENCY_STEEPNESS = 1.0       
 
 # --- SIMULATION PARAMETERS ---
-T_FINAL = 400.0
-N_TIME_POINTS = 2000          
-SOLVER_RTOL = 1e-5
-SOLVER_ATOL = 1e-7
-MAX_STEP = 2.0
+# Simplified for cloud deployment (faster execution)
+T_FINAL = 100.0
+N_TIME_POINTS = 400          
+SOLVER_RTOL = 1e-4
+SOLVER_ATOL = 1e-6
+MAX_STEP = 5.0
 
 # PIECEWISE PRICING STRATEGY
 def get_station_parameters(t, station_id):
@@ -481,7 +482,8 @@ def run_simulation(save_animation_path=None):
     # SEGMENTED INTEGRATION
     print("\n3. Running segmented simulation across phases...")
     
-    phase_boundaries = [0, 100, 200, 300, T_FINAL]
+    # Simplified: single phase for faster cloud execution
+    phase_boundaries = [0, T_FINAL]
     
     t_all = []
     x_all = []
@@ -688,7 +690,7 @@ def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_p
             
         ax.axis('off')
 
-    ani = animation.FuncAnimation(fig, update, frames=np.arange(0, len(t), 5), interval=100)
+    ani = animation.FuncAnimation(fig, update, frames=np.arange(0, len(t), 10), interval=100)
     
     # Save animation if path provided
     if save_path:
