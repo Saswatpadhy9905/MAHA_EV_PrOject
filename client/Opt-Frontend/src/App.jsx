@@ -14,6 +14,8 @@ function App() {
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(100)
   const [points, setPoints] = useState(400)
+  const [animationPaused, setAnimationPaused] = useState(false)
+  const [animationKey, setAnimationKey] = useState(0)
 
   const runSimulation = async () => {
     setIsRunning(true)
@@ -148,13 +150,6 @@ function App() {
                   <span className="info-value">EV Network</span>
                 </div>
               </div>
-              <div className="info-card">
-                <div className="info-icon">⏱️</div>
-                <div className="info-text">
-                  <span className="info-label">Duration</span>
-                  <span className="info-value">{duration}s Sim</span>
-                </div>
-              </div>
             </div>
 
             <div className="param-inputs">
@@ -250,7 +245,7 @@ function App() {
                 <span className="results-icon">🎬</span>
                 <div>
                   <h2>Network Animation</h2>
-                  <span className="results-subtitle">100-second simulation visualization</span>
+                  <span className="results-subtitle">{duration}-second simulation visualization</span>
                 </div>
               </div>
               <button className="toggle-button" onClick={() => setShowAnimation(false)}>
@@ -261,11 +256,62 @@ function App() {
               </button>
             </div>
             <div className="animation-display">
-              <img 
-                src={`data:image/gif;base64,${animation}`}
-                alt="Network Animation"
-                className="animation-image"
-              />
+              {!animationPaused && (
+                <img 
+                  key={animationKey}
+                  src={`data:image/gif;base64,${animation}`}
+                  alt="Network Animation"
+                  className="animation-image"
+                />
+              )}
+              {animationPaused && (
+                <div className="animation-paused-overlay">
+                  <span>⏸️ Paused</span>
+                </div>
+              )}
+            </div>
+            <div className="animation-controls">
+              <button 
+                className="control-btn" 
+                onClick={() => setAnimationPaused(!animationPaused)}
+                title={animationPaused ? 'Play' : 'Pause'}
+              >
+                {animationPaused ? (
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <polygon points="5 3 19 12 5 21 5 3"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <rect x="6" y="4" width="4" height="16"/>
+                    <rect x="14" y="4" width="4" height="16"/>
+                  </svg>
+                )}
+                <span>{animationPaused ? 'Play' : 'Pause'}</span>
+              </button>
+              <button 
+                className="control-btn" 
+                onClick={() => { setAnimationPaused(false); setAnimationKey(k => k + 1); }}
+                title="Restart"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                  <path d="M1 4v6h6"/>
+                  <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                </svg>
+                <span>Restart</span>
+              </button>
+              <a 
+                className="control-btn" 
+                href={`data:image/gif;base64,${animation}`}
+                download="ev_simulation.gif"
+                title="Download"
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="20" height="20">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Download</span>
+              </a>
             </div>
             <div className="animation-footer">
               <div className="legend-item">

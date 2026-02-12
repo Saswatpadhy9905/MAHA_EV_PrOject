@@ -707,6 +707,53 @@ body {
   box-shadow: var(--shadow-xl);
 }
 
+.animation-paused-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  background: var(--gray-100);
+  border-radius: var(--radius-lg);
+  font-size: 1.5rem;
+  color: var(--gray-500);
+}
+
+.animation-controls {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+}
+
+.control-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  background: white;
+  border: 2px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition-base);
+  text-decoration: none;
+}
+
+.control-btn:hover {
+  border-color: var(--primary-400);
+  background: var(--primary-50);
+  color: var(--primary-700);
+}
+
+.control-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .animation-footer {
   display: flex;
   justify-content: center;
