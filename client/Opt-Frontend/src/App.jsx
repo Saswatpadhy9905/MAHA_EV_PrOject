@@ -361,6 +361,9 @@ function App() {
         {/* Footer */}
         <footer className="footer">
           <p>EV Charging Station Simulation • Network-based Traffic Analysis</p>
+          <div className="footer-credit">
+            <p>Developed by <strong>Saswat Padhy</strong> • Student, IIT Kharagpur</p>
+          </div>
         </footer>
       </div>
     </div>

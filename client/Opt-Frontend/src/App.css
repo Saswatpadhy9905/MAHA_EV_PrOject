@@ -922,6 +922,23 @@ body {
   font-size: 0.9rem;
 }
 
+.footer-credit {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.footer-credit p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  letter-spacing: 0.3px;
+}
+
+.footer-credit strong {
+  color: var(--primary-400);
+  font-weight: 600;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from { opacity: 0; }
