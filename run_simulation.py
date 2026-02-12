@@ -50,11 +50,11 @@ try:
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     
-    # Import and run the simulation (using ev_tc_7)
-    from ev_tc_7 import run_simulation
+    # Import and run the simulation (using ev_tc_6 for free tier - lighter)
+    from ev_tc_6 import run_simulation
     
-    # Run the simulation - save animation to GIF file
-    run_simulation(save_animation_path=animation_gif_path)
+    # Run the simulation
+    run_simulation()
     
     # Restore stdout/stderr
     sys.stdout = old_stdout

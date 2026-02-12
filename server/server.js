@@ -7,7 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Build version for cache busting
-const BUILD_VERSION = '3.2.0-noaim';
+const BUILD_VERSION = '3.3.0-ev_tc_6';
 
 // CORS configuration - handle preflight properly for Koyeb/cloud platforms
 const corsOptions = {
