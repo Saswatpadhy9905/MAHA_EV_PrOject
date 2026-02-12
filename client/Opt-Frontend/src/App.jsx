@@ -13,7 +13,7 @@ function App() {
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0)
   const [showAnimation, setShowAnimation] = useState(true)
   const [progress, setProgress] = useState(0)
-  const [duration, setDuration] = useState(100)
+  const [duration, setDuration] = useState(70)
   const [points, setPoints] = useState(400)
 
   const runSimulation = async () => {
