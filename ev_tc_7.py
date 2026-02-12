@@ -565,9 +565,9 @@ def run_simulation(save_animation_path=None, t_final=None, n_points=None):
     
     # Create visualizations
     print("\n5. Creating visualizations...")
-    # Skip animation for cloud deployment (too heavy)
-    # print("   [VIZ 1/4] Network animation...")
-    # create_network_animation(G, x_all, t_all, idx_to_edge, charging_stations, get_station_parameters, save_path=save_animation_path)
+    # Enable animation with optimized settings for cloud
+    print("   [VIZ 1/4] Network animation...")
+    create_network_animation(G, x_all, t_all, idx_to_edge, charging_stations, get_station_parameters, save_path=save_animation_path, n_frames=min(50, sim_n_points // 4))
     
     print("   [VIZ 2/4] Path demands...")
     plot_path_demands(t_all, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
@@ -584,11 +584,12 @@ def run_simulation(save_animation_path=None, t_final=None, n_points=None):
 # ============================================================================
 # VISUALIZATION FUNCTIONS
 # ============================================================================
-def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_params_func, save_path=None):
+def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_params_func, save_path=None, n_frames=50):
     """Create animated network visualization
     
     Args:
         save_path: If provided, saves animation to this file path (e.g., 'network_animation.gif')
+        n_frames: Number of frames in the animation (default: 50 for cloud optimization)
     """
     
     # Compute link demands (total flow wanting to use each link)
@@ -696,7 +697,10 @@ def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_p
             
         ax.axis('off')
 
-    ani = animation.FuncAnimation(fig, update, frames=np.arange(0, len(t), 10), interval=100)
+    # Calculate frame step to get n_frames total
+    frame_step = max(1, len(t) // n_frames)
+    frames = np.arange(0, len(t), frame_step)
+    ani = animation.FuncAnimation(fig, update, frames=frames, interval=100)
     
     # Save animation if path provided
     if save_path:
