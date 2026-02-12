@@ -67,8 +67,8 @@ try:
     # Import and run the simulation (using ev_tc_7 with configurable parameters)
     from ev_tc_7 import run_simulation
     
-    # Run the simulation with provided parameters
-    run_simulation(t_final=t_final_arg, n_points=n_points_arg)
+    # Run the simulation with provided parameters and save animation
+    run_simulation(save_animation_path=animation_gif_path, t_final=t_final_arg, n_points=n_points_arg)
     
     # Restore stdout/stderr
     sys.stdout = old_stdout
