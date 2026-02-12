@@ -442,7 +442,7 @@ function App() {
         <footer className="footer">
           <p>EV Charging Station Simulation • Network-based Traffic Analysis</p>
           <div className="footer-credit">
-            <p>Developed by <strong>Saswat Padhy</strong>, <strong>Kshitij Mehta</strong> & <strong>Aditya Chaari</strong> • Students, IIT Kharagpur</p>
+            <p>Developed by <strong>Saswat Padhy</strong>, <strong>Kshitij Mehta</strong> & <strong>Aaditya Chari</strong> • Students, IIT Kharagpur</p>
           </div>
         </footer>
       </div>
