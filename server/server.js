@@ -64,14 +64,26 @@ app.post('/api/run-simulation', (req, res) => {
   let pythonCmd = 'python';
   
   if (isProduction) {
-    // Try Render's venv path first, then fallback to /app/venv (Docker)
     const fs = require('fs');
-    if (fs.existsSync('/opt/render/project/src/.venv/bin/python')) {
-      pythonCmd = '/opt/render/project/src/.venv/bin/python';
-    } else if (fs.existsSync('/app/venv/bin/python')) {
-      pythonCmd = '/app/venv/bin/python';
-    } else {
-      pythonCmd = 'python3';
+    // Check multiple possible Python locations
+    const pythonPaths = [
+      '/opt/render/project/src/.venv/bin/python',
+      '/app/venv/bin/python',
+      '/usr/bin/python3',
+      'python3',
+      'python'
+    ];
+    
+    for (const p of pythonPaths) {
+      if (p.startsWith('/')) {
+        if (fs.existsSync(p)) {
+          pythonCmd = p;
+          break;
+        }
+      } else {
+        pythonCmd = p;
+        break;
+      }
     }
   }
   
