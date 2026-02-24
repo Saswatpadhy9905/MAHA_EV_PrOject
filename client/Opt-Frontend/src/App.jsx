@@ -109,17 +109,17 @@ function App() {
               </svg>
             </div>
             <div className="logo-text">
-              <h1>EV Charging Station</h1>
+              <h1>Dynamic Pricing by EV Charging Stations</h1>
               <span className="logo-subtitle">Simulation Platform</span>
             </div>
           </div>
           <p className="header-description">
-            Advanced network-based traffic flow analysis and EV adoption modeling
+            Visualization of the impact of dynamic pricing by EV charging stations
           </p>
           <div className="header-badges">
-            <span className="badge">🔬 Scientific Analysis</span>
-            <span className="badge">📈 Real-time Graphs</span>
-            <span className="badge">🎬 Animation Support</span>
+            <span className="badge">� Dynamic traffic flow model</span>
+            <span className="badge">⏱️ Queuing Dynamics</span>
+            <span className="badge">💰 Charging station revenue</span>
           </div>
         </header>
 
@@ -367,16 +367,16 @@ function App() {
             <p>Click the "Run Simulation" button above to generate analysis graphs and animations</p>
             <div className="empty-features">
               <div className="feature-item">
-                <span className="feature-icon">📈</span>
-                <span>Traffic Analysis</span>
+                <span className="feature-icon">�</span>
+                <span>Charging station revenue</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">🔋</span>
-                <span>EV Adoption</span>
+                <span className="feature-icon">🚗</span>
+                <span>EV user behavior</span>
               </div>
               <div className="feature-item">
-                <span className="feature-icon">🗺️</span>
-                <span>Network Flow</span>
+                <span className="feature-icon">🛣️</span>
+                <span>Traffic flow on transportation network</span>
               </div>
             </div>
           </div>
@@ -384,9 +384,10 @@ function App() {
 
         {/* Footer */}
         <footer className="footer">
-          <p>EV Charging Station Simulation • Network-based Traffic Analysis</p>
+          <p>Simulation platform to visualize the impact of dynamic pricing by EV charging stations on traffic flow, waiting time and charging station revenue</p>
           <div className="footer-credit">
-            <p>Developed by <strong>Saswat Padhy</strong>, <strong>Kshitij Mehta</strong> & <strong>Aaditya Chari</strong> • Students, IIT Kharagpur</p>
+            <p>Developed by <strong>Saswat Padhy</strong>, <strong>Kshitij Mehta</strong> & <strong>Aaditya Chari</strong> as Part of ANRF Funded MAHA-EV Project</p>
+            <p>Advisors: Department of Electrical Engineering, IIT Kharagpur, Prof. Ashish R. Hota and Prof. Debaprasad Kastha</p>
           </div>
         </footer>
       </div>
