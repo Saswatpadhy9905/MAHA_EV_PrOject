@@ -59,9 +59,10 @@ app.post('/api/run-simulation', (req, res) => {
   // Get simulation parameters from request body (with defaults)
   const duration = parseFloat(req.body.duration) || 100;
   const points = parseInt(req.body.points) || 400;
+  const simType = req.body.simType || 'tc7'; // 'tc7' (4-node, 2-station) or 'tc9' (9-node, 4-station)
   
   console.log(`[Server] Starting simulation from: ${pythonScriptPath}`);
-  console.log(`[Server] Parameters: duration=${duration}s, points=${points}`);
+  console.log(`[Server] Parameters: duration=${duration}s, points=${points}, type=${simType}`);
   console.log(`[Server] Working directory: ${path.join(__dirname, '..')}`);
   
   // Determine Python executable - check various venv locations for cloud platforms
@@ -95,7 +96,7 @@ app.post('/api/run-simulation', (req, res) => {
   console.log(`[Server] Using Python: ${pythonCmd}`);
   
   // Spawn Python process with simulation parameters as arguments
-  const pythonProcess = spawn(pythonCmd, [pythonScriptPath, duration.toString(), points.toString()], {
+  const pythonProcess = spawn(pythonCmd, [pythonScriptPath, duration.toString(), points.toString(), simType], {
     cwd: path.join(__dirname, '..'),  // Set working directory to project root
     env: { ...process.env, PYTHONUNBUFFERED: '1' }
   });

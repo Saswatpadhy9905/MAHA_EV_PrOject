@@ -408,13 +408,14 @@ def coupled_dynamics(t, state, params):
 # ============================================================================
 # SIMULATION RUNNER
 # ============================================================================
-def run_simulation(save_animation_path=None, t_final=None, n_points=None):
+def run_simulation(save_animation_path=None, t_final=None, n_points=None, return_data=False):
     """Main simulation with segmented ODE integration
     
     Args:
         save_animation_path: If provided, saves animation to this file path (e.g., 'network_animation.gif')
         t_final: Simulation duration (default: T_FINAL)
         n_points: Number of time points (default: N_TIME_POINTS)
+        return_data: If True, returns network data for interactive visualization
     """
     # Use provided parameters or defaults
     sim_t_final = t_final if t_final is not None else T_FINAL
@@ -573,12 +574,68 @@ def run_simulation(save_animation_path=None, t_final=None, n_points=None):
     plot_path_demands(t_all, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
                      lambda_od_EV, lambda_od_NEV)
     
-    print("   [VIZ 3/4] Link densities...")
-    plot_link_densities(t_all, x_all, G, idx_to_edge)
+    print("   [VIZ 3/4] Replicator convergence...")
+    plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
+                         paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
+                         lambda_od_EV, lambda_od_NEV, idx_to_edge, G)
     
     print("   [VIZ 4/4] Competition metrics...")
     plot_charging_station_metrics(q_s_traj, p_s_traj, t_all, charging_stations,
                                   get_station_parameters, x_all, paths_EV, od_pairs_EV)
+    
+    # Return network data for interactive visualization
+    if return_data:
+        pos = nx.get_node_attributes(G, 'pos')
+        # Build nodes list
+        nodes = []
+        for node in G.nodes():
+            x_pos, y_pos = pos.get(node, (0, 0))
+            node_type = 'origin' if node == 'O' else ('destination' if node == 'D' else 'intermediate')
+            nodes.append({
+                'id': node,
+                'x': float(x_pos),
+                'y': float(y_pos),
+                'type': node_type
+            })
+        
+        # Build edges list
+        edges = []
+        for i, (u, v, k) in enumerate(idx_to_edge):
+            if u == v:
+                continue  # Skip self-loops
+            edata = G[u][v][k]
+            link_type = edata.get('link_type', 'mixed')
+            station_id = edata.get('station_id', None)
+            edges.append({
+                'id': i,
+                'source': u,
+                'target': v,
+                'key': k,
+                'linkType': link_type,
+                'stationId': station_id
+            })
+        
+        # Downsample time series for web (max 100 points)
+        step = max(1, len(t_all) // 100)
+        t_sampled = t_all[::step].tolist()
+        x_sampled = x_all[:, ::step].tolist()
+        
+        # Station prices over time
+        station_prices = {}
+        for sid in charging_stations:
+            station_prices[sid] = [get_station_parameters(t, sid)['p_s'] for t in t_sampled]
+        
+        return {
+            'nodes': nodes,
+            'edges': edges,
+            'timePoints': t_sampled,
+            'densities': x_sampled,  # x_sampled[link_id][time_idx]
+            'chargingStations': {sid: int(lid) for sid, lid in charging_stations.items()},
+            'stationPrices': station_prices,
+            'duration': float(sim_t_final)
+        }
+    
+    return None
 
 
 # ============================================================================
@@ -720,15 +777,19 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
     fig.suptitle('Path Demand Dynamics', fontsize=14, fontweight='bold')
     
+    # Bright vibrant colors
+    bright_colors = ['#1E90FF', '#FF8C00', '#32CD32', '#DC143C', '#9932CC', '#00CED1', '#FF1493']
+    
     # NEV paths
     idx = 0
     for od in od_pairs_NEV:
         paths = paths_NEV[od]
         for p_idx in range(len(paths)):
-            ax1.plot(t, y_NEV_all[idx, :], label=f'Path {p_idx}', linewidth=2)
+            ax1.plot(t, y_NEV_all[idx, :], label=f'Path {p_idx}', linewidth=2.5,
+                    color=bright_colors[p_idx % len(bright_colors)])
             idx += 1
     
-    ax1.axhline(y=lambda_od_NEV[od_pairs_NEV[0]], color='red', linestyle='--', 
+    ax1.axhline(y=lambda_od_NEV[od_pairs_NEV[0]], color='#DC143C', linestyle='--', linewidth=2.5,
                label=f'Total Demand={lambda_od_NEV[od_pairs_NEV[0]]:.2f}')
     ax1.set_title('NEV: O1 -> D1')
     ax1.set_xlabel('Time')
@@ -741,10 +802,11 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, 
     for od in od_pairs_EV:
         paths = paths_EV[od]
         for p_idx in range(len(paths)):
-            ax2.plot(t, y_EV_all[idx, :], label=f'Path {p_idx}', linewidth=2)
+            ax2.plot(t, y_EV_all[idx, :], label=f'Path {p_idx}', linewidth=2.5,
+                    color=bright_colors[p_idx % len(bright_colors)])
             idx += 1
     
-    ax2.axhline(y=lambda_od_EV[od_pairs_EV[0]], color='red', linestyle='--',
+    ax2.axhline(y=lambda_od_EV[od_pairs_EV[0]], color='#DC143C', linestyle='--', linewidth=2.5,
                label=f'Total Demand={lambda_od_EV[od_pairs_EV[0]]:.2f}')
     ax2.set_title('EV: O1 -> D1')
     ax2.set_xlabel('Time')
@@ -756,35 +818,86 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, 
     plt.show()
 
 
-def plot_link_densities(t, x_traj, G, idx_to_edge):
-    """Plot link traffic densities"""
-    n_links = x_traj.shape[0]
-    n_cols = 3
-    n_rows = (n_links + n_cols - 1) // n_cols
-    
-    fig, axs = plt.subplots(n_rows, n_cols, figsize=(15, 3 * n_rows))
-    fig.suptitle('Link Traffic Densities', fontsize=14, fontweight='bold')
-    plt.subplots_adjust(hspace=0.6, wspace=0.3, top=0.93, bottom=0.08)
-    
-    axs = axs.flatten() if n_links > 1 else [axs]
-    
-    for i in range(n_links):
-        edge = idx_to_edge[i]
-        edge_data = G.edges[edge]
-        link_type = edge_data.get('link_type', 'mixed')
-        station_info = f" ({edge_data.get('station_id', '')})" if link_type == 'EV-only' else ''
-        
-        color = 'green' if link_type == 'EV-only' else 'blue'
-        axs[i].plot(t, x_traj[i], label=f"Link {i}", color=color, linewidth=2)
-        axs[i].set_title(f"Link {i}: {edge[0]}->{edge[1]} [{link_type}]{station_info}", fontsize=10, pad=8)
-        axs[i].set_xlabel("Time", fontsize=9)
-        axs[i].set_ylabel(r"Density $x_i$", fontsize=9)
-        axs[i].grid(True, alpha=0.3)
-        axs[i].legend(fontsize=8)
-    
-    for k in range(n_links, len(axs)):
-        axs[k].axis('off')
-    
+def plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
+                          paths_EV, paths_NEV,
+                          od_pairs_EV, od_pairs_NEV,
+                          lambda_EV, lambda_NEV, idx_to_edge, G):
+    """Plot replicator convergence: tau_avg - tau_p -> 0"""
+    step   = max(1, len(t_all)//400)
+    t_sub  = t_all[::step]
+    x_sub  = x_all[:, ::step]
+    yEVs   = y_EV_all[:, ::step]
+    yNEVs  = y_NEV_all[:, ::step]
+    n_sub  = len(t_sub)
+
+    # Bright colors for paths
+    bright_colors = ['#1E90FF', '#FF8C00', '#32CD32', '#DC143C', '#9932CC', '#00CED1', '#FF1493']
+
+    def gap_series(od_pairs, paths_dict, y_sub, lam_dict, vcls):
+        results = []
+        pidx = 0
+        for od in od_pairs:
+            paths = paths_dict[od]
+            np_od = len(paths)
+            lam   = lam_dict[od]
+            gaps  = np.zeros((np_od, n_sub))
+            for ti in range(n_sub):
+                x_t  = x_sub[:, ti]
+                y_od = np.maximum(y_sub[pidx:pidx+np_od, ti], 0.0)
+                tot  = y_od.sum()
+                y_n  = y_od*(lam/tot) if tot>1e-12 else np.full(np_od, lam/np_od)
+                tau_p = []
+                for path in paths:
+                    c = 0.0
+                    for lid in path:
+                        u,v,k = idx_to_edge[lid]
+                        d  = G[u][v][k]
+                        lt = d.get('link_type','mixed')
+                        if lt in ('origin','destination'): continue
+                        elif lt=='EV-only' and vcls=='EV':
+                            sid = d['station_id']
+                            sp  = get_station_parameters(t_sub[ti], sid)
+                            xi  = x_t[lid]
+                            wt  = xi / max(sp['mu_s'], 1e-9)
+                            c  += latency_function(xi, True) + alpha*wt + gamma*sp['p_s']
+                        else:
+                            c += latency_function(x_t[lid])
+                    tau_p.append(c)
+                tau_p  = np.array(tau_p)
+                tau_avg= (y_n*tau_p).sum() / max(lam,1e-12)
+                gaps[:, ti] = tau_avg - tau_p
+            # Simple title using OD tuple (link IDs in TC-7)
+            results.append(dict(title=f'{vcls}: O->D', gaps=gaps))
+            pidx += np_od
+        return results
+
+    all_res = (gap_series(od_pairs_NEV, paths_NEV, yNEVs, lambda_NEV, 'NEV') +
+               gap_series(od_pairs_EV,  paths_EV,  yEVs,  lambda_EV,  'EV'))
+
+    if not all_res: return
+
+    n_cols = 2
+    n_rows = (len(all_res)+1)//2
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(16, 5*n_rows))
+    fig.suptitle('Replicator Convergence:  tau_avg - tau_p  ->  0',
+                 fontsize=16, fontweight='bold')
+    plt.subplots_adjust(hspace=0.45, wspace=0.30, top=0.93)
+    axs = axs.flatten() if len(all_res)>1 else [axs]
+
+    for i, res in enumerate(all_res):
+        ax = axs[i]
+        for pi in range(res['gaps'].shape[0]):
+            ax.plot(t_sub, res['gaps'][pi,:], lw=2.5, label=f'Path {pi}',
+                   color=bright_colors[pi % len(bright_colors)])
+        ax.axhline(0, color='#DC143C', ls='--', lw=2, label='Equilibrium (0)')
+        ax.set_title(res['title'], fontsize=12, fontweight='bold')
+        ax.set_xlabel('Time')
+        ax.set_ylabel('tau_avg - tau_p')
+        ax.grid(True, alpha=0.3)
+        ax.legend(fontsize=8, framealpha=0.9)
+
+    for i in range(len(all_res), len(axs)):
+        axs[i].axis('off')
     plt.show()
 
 
@@ -796,8 +909,10 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
     
     fig, axs = plt.subplots(2, 3, figsize=(18, 10))
     fig.suptitle('Competition Metrics (Dynamic Pricing Game)', fontsize=16, fontweight='bold')
+    fig.patch.set_facecolor('white')
     
-    colors = {'S1': '#ff6b6b', 'S2': '#4ecdc4'}
+    # Bright vibrant colors
+    colors = {'S1': '#FF4136', 'S2': '#0074D9'}
     
     # Market Share Evolution
     ax = axs[0, 0]
@@ -805,15 +920,16 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
     for sid in station_ids:
         market_share = 100 * q_s_traj[sid] / (total_flow + 1e-9)
         ax.plot(t, market_share, label=sid, linewidth=2.5, color=colors[sid])
+        ax.fill_between(t, 0, market_share, color=colors[sid], alpha=0.15)
     ax.axvline(x=100, color='gray', linestyle='--', alpha=0.5, label='Phase Change')
     ax.axvline(x=200, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(x=300, color='gray', linestyle='--', alpha=0.5)
-    ax.set_title('Market Share Evolution (%)')
+    ax.set_title('Market Share Evolution', fontweight='bold')
     ax.set_ylabel('Market Share (%)')
     ax.set_xlabel('Time (s)')
     ax.set_ylim(0, 100)
     ax.grid(True, alpha=0.3)
-    ax.legend()
+    ax.legend(framealpha=0.9)
     
     # Pricing Strategy
     ax = axs[0, 1]
@@ -822,11 +938,11 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
     ax.axvline(x=100, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(x=200, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(x=300, color='gray', linestyle='--', alpha=0.5)
-    ax.set_title('Pricing Strategy')
+    ax.set_title('Pricing Strategy', fontweight='bold')
     ax.set_ylabel('Price ($/vehicle)')
     ax.set_xlabel('Time (s)')
     ax.grid(True, alpha=0.3)
-    ax.legend()
+    ax.legend(framealpha=0.9)
     
     # Queue Lengths
     ax = axs[0, 2]
@@ -836,11 +952,11 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
     ax.axvline(x=100, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(x=200, color='gray', linestyle='--', alpha=0.5)
     ax.axvline(x=300, color='gray', linestyle='--', alpha=0.5)
-    ax.set_title('Queue Lengths')
+    ax.set_title('Queue Lengths', fontweight='bold')
     ax.set_ylabel('Vehicles in Queue')
     ax.set_xlabel('Time (s)')
     ax.grid(True, alpha=0.3)
-    ax.legend()
+    ax.legend(framealpha=0.9)
     
     # Phase comparison bar charts
     phases = [
@@ -930,14 +1046,15 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
                   edgecolor='black', alpha=0.8)
     
     ax.set_ylabel('Market Share (%)')
-    ax.set_title('Market Share (%)')
+    ax.set_title('Overall Market Share')
     ax.set_ylim(0, 110)
     ax.grid(True, alpha=0.3, axis='y')
     
-    for bar in bars:
+    for bar, sid in zip(bars, station_ids):
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2., height + 2,
-                f'{height:.1f}%', ha='center', va='bottom', fontweight='bold', fontsize=11)
+                f'{height:.1f}%', ha='center', va='bottom', fontweight='bold', fontsize=12,
+                color=colors[sid])
     
     plt.tight_layout(rect=[0, 0.03, 1, 0.96])
     plt.show()

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import GifPlayer from './GifPlayer'
+import InteractiveNetworkPlayer from './InteractiveNetworkPlayer'
 
 // API URL - uses environment variable in production, localhost in development
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -9,20 +10,25 @@ function App() {
   const [isRunning, setIsRunning] = useState(false)
   const [graphs, setGraphs] = useState([])
   const [animation, setAnimation] = useState(null)
+  const [networkData, setNetworkData] = useState(null)
   const [error, setError] = useState(null)
   const [currentGraphIndex, setCurrentGraphIndex] = useState(0)
   const [showAnimation, setShowAnimation] = useState(true)
+  const [viewMode, setViewMode] = useState('animation') // 'animation', 'interactive', 'static'
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(70)
   const [points, setPoints] = useState(400)
+  const [simType, setSimType] = useState('tc7') // 'tc7' or 'tc9'
 
   const runSimulation = async () => {
     setIsRunning(true)
     setError(null)
     setGraphs([])
     setAnimation(null)
+    setNetworkData(null)
     setCurrentGraphIndex(0)
     setShowAnimation(true)
+    setViewMode('interactive')
     setProgress(0)
 
     // Simulate progress animation
@@ -35,7 +41,7 @@ function App() {
 
     try {
       console.log('Starting simulation...')
-      console.log(`Parameters: duration=${duration}s, points=${points}`)
+      console.log(`Parameters: duration=${duration}s, points=${points}, type=${simType}`)
       const response = await fetch(`${API_URL}/api/run-simulation`, {
         method: 'POST',
         headers: {
@@ -43,7 +49,8 @@ function App() {
         },
         body: JSON.stringify({
           duration: duration,
-          points: points
+          points: points,
+          simType: simType
         })
       })
 
@@ -60,17 +67,24 @@ function App() {
       if (data.success && data.data) {
         const graphsArray = data.data.graphs || data.graphs || []
         const animationData = data.data.animation || null
+        const networkDataFromServer = data.data.networkData || null
         
         if (animationData) {
           console.log('Received animation GIF')
           setAnimation(animationData)
+        }
+
+        if (networkDataFromServer) {
+          console.log('Received network data for interactive visualization')
+          setNetworkData(networkDataFromServer)
+          setViewMode('interactive')
         }
         
         if (graphsArray.length > 0) {
           console.log(`Received ${graphsArray.length} graphs`)
           setGraphs(graphsArray)
           setCurrentGraphIndex(0)
-        } else if (!animationData) {
+        } else if (!animationData && !networkDataFromServer) {
           setError(`No graphs generated. Message: ${data.data.message || 'Unknown'}`)
         }
       } else if (data.data && data.data.message) {
@@ -148,6 +162,31 @@ function App() {
                   <span className="info-label">Type</span>
                   <span className="info-value">EV Network</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Simulation Type Selector */}
+            <div className="sim-type-selector">
+              <label className="sim-type-label">Network Configuration</label>
+              <div className="sim-type-options">
+                <button
+                  className={`sim-type-btn ${simType === 'tc7' ? 'active' : ''}`}
+                  onClick={() => setSimType('tc7')}
+                  disabled={isRunning}
+                >
+                  <span className="sim-type-icon">🔷</span>
+                  <span className="sim-type-name">TC-7</span>
+                  <span className="sim-type-desc">4 Nodes, 2 Stations</span>
+                </button>
+                <button
+                  className={`sim-type-btn ${simType === 'tc9' ? 'active' : ''}`}
+                  onClick={() => setSimType('tc9')}
+                  disabled={isRunning}
+                >
+                  <span className="sim-type-icon">🔶</span>
+                  <span className="sim-type-name">TC-9</span>
+                  <span className="sim-type-desc">9 Nodes, 4 Stations</span>
+                </button>
               </div>
             </div>
 
@@ -236,121 +275,151 @@ function App() {
           </div>
         )}
 
-        {/* Animation Section */}
-        {animation && showAnimation && (
-          <div className="results-container animation-container">
+        {/* Results View Mode Selector and Display */}
+        {(animation || networkData || graphs.length > 0) && (
+          <div className="results-container">
             <div className="results-header">
               <div className="results-title">
-                <span className="results-icon">🎬</span>
+                <span className="results-icon">{viewMode === 'interactive' ? '🔗' : viewMode === 'animation' ? '🎬' : '📊'}</span>
                 <div>
-                  <h2>Network Animation</h2>
-                  <span className="results-subtitle">{duration}-second simulation visualization</span>
+                  <h2>{viewMode === 'interactive' ? 'Interactive Network' : viewMode === 'animation' ? 'Network Animation' : 'Analysis Results'}</h2>
+                  <span className="results-subtitle">{duration}-second simulation</span>
                 </div>
               </div>
-              <button className="toggle-button" onClick={() => setShowAnimation(false)}>
-                <span>View Static Graphs</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 18l6-6-6-6"/>
-                </svg>
-              </button>
-            </div>
-            <div className="animation-display">
-              <GifPlayer gifBase64={animation} simulationDuration={duration} />
-            </div>
-            <div className="animation-footer">
-              <div className="legend-item">
-                <span className="legend-color" style={{background: '#3b82f6'}}></span>
-                <span>x: Density values</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-color" style={{background: '#10b981'}}></span>
-                <span>y: Flow values</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Static Graphs Section */}
-        {graphs.length > 0 && (!animation || !showAnimation) && (
-          <div className="results-container graphs-container">
-            <div className="results-header">
-              <div className="results-title">
-                <span className="results-icon">📊</span>
-                <div>
-                  <h2>Analysis Results</h2>
-                  <span className="results-subtitle">{graphs.length} graphs generated</span>
-                </div>
-              </div>
-              {animation && (
-                <button className="toggle-button" onClick={() => setShowAnimation(true)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 18l-6-6 6-6"/>
-                  </svg>
-                  <span>View Animation</span>
-                </button>
-              )}
-            </div>
-            
-            <div className="graph-viewer">
-              <div className="graph-display">
-                <img 
-                  src={`data:image/png;base64,${graphs[currentGraphIndex]}`}
-                  alt={`Graph ${currentGraphIndex + 1}`}
-                  className="graph-image"
-                />
-              </div>
-
-              <div className="navigation">
-                <button 
-                  onClick={() => setCurrentGraphIndex((i) => Math.max(0, i - 1))}
-                  disabled={currentGraphIndex === 0}
-                  className="nav-button"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M15 18l-6-6 6-6"/>
-                  </svg>
-                  <span>Previous</span>
-                </button>
-
-                <div className="counter">
-                  <span className="counter-current">{currentGraphIndex + 1}</span>
-                  <span className="counter-separator">/</span>
-                  <span className="counter-total">{graphs.length}</span>
-                </div>
-
-                <button 
-                  onClick={() => setCurrentGraphIndex((i) => Math.min(graphs.length - 1, i + 1))}
-                  disabled={currentGraphIndex === graphs.length - 1}
-                  className="nav-button"
-                >
-                  <span>Next</span>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 18l6-6-6-6"/>
-                  </svg>
-                </button>
-              </div>
-
-              <div className="graph-thumbnails">
-                {graphs.map((_, index) => (
-                  <div
-                    key={index}
-                    className={`thumbnail ${index === currentGraphIndex ? 'active' : ''}`}
-                    onClick={() => setCurrentGraphIndex(index)}
+              
+              {/* View Mode Switcher */}
+              <div className="view-mode-switcher">
+                {networkData && (
+                  <button
+                    className={`view-mode-btn ${viewMode === 'interactive' ? 'active' : ''}`}
+                    onClick={() => setViewMode('interactive')}
                   >
-                    <img 
-                      src={`data:image/png;base64,${graphs[index]}`}
-                      alt={`Thumbnail ${index + 1}`}
-                    />
-                    <span className="thumb-number">{index + 1}</span>
-                  </div>
-                ))}
+                    🔗 Interactive
+                  </button>
+                )}
+                {animation && (
+                  <button
+                    className={`view-mode-btn ${viewMode === 'animation' ? 'active' : ''}`}
+                    onClick={() => setViewMode('animation')}
+                  >
+                    🎬 Animation
+                  </button>
+                )}
+                {graphs.length > 0 && (
+                  <button
+                    className={`view-mode-btn ${viewMode === 'static' ? 'active' : ''}`}
+                    onClick={() => setViewMode('static')}
+                  >
+                    📊 Graphs
+                  </button>
+                )}
               </div>
             </div>
+
+            {/* Interactive Network View */}
+            {viewMode === 'interactive' && networkData && (
+              <InteractiveNetworkPlayer 
+                networkData={networkData}
+                simulationDuration={duration}
+              />
+            )}
+
+            {/* Animation View */}
+            {viewMode === 'animation' && animation && (
+              <>
+                <div className="animation-display">
+                  <GifPlayer gifBase64={animation} simulationDuration={duration} />
+                </div>
+                <div className="animation-footer">
+                  <div className="legend-item">
+                    <span className="legend-color" style={{background: '#3b82f6'}}></span>
+                    <span>x: Density values</span>
+                  </div>
+                  <div className="legend-item">
+                    <span className="legend-color" style={{background: '#10b981'}}></span>
+                    <span>y: Flow values</span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Static Graphs View */}
+            {viewMode === 'static' && graphs.length > 0 && (
+              <div className="graph-viewer">
+                <div className="graph-header">
+                  <h3 className="graph-title">
+                    {['Competition Metrics (Dynamic Pricing Game)', 'Path Demand Dynamics', 'Replicator Convergence'][currentGraphIndex] || `Analysis Graph ${currentGraphIndex + 1}`}
+                  </h3>
+                  <p className="graph-subtitle">
+                    {['Market share, pricing strategy, queue lengths, revenue & profit analysis', 
+                      'Path flow distribution across OD pairs for NEV and EV', 
+                      'τ_avg - τ_p convergence to equilibrium'][currentGraphIndex] || 'Simulation results visualization'}
+                  </p>
+                </div>
+                <div className="graph-display">
+                  <img 
+                    src={`data:image/png;base64,${graphs[currentGraphIndex]}`}
+                    alt={`Graph ${currentGraphIndex + 1}`}
+                    className="graph-image"
+                  />
+                </div>
+
+                <div className="navigation">
+                  <button 
+                    onClick={() => setCurrentGraphIndex((i) => Math.max(0, i - 1))}
+                    disabled={currentGraphIndex === 0}
+                    className="nav-button"
+                  >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                    <span>Previous</span>
+                  </button>
+
+                  <div className="counter">
+                    <span className="counter-current">{currentGraphIndex + 1}</span>
+                    <span className="counter-separator">/</span>
+                    <span className="counter-total">{graphs.length}</span>
+                  </div>
+
+                  <button 
+                    onClick={() => setCurrentGraphIndex((i) => Math.min(graphs.length - 1, i + 1))}
+                    disabled={currentGraphIndex === graphs.length - 1}
+                    className="nav-button"
+                  >
+                    <span>Next</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M9 18l6-6-6-6"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <div className="graph-thumbnails">
+                  {graphs.map((_, index) => (
+                    <div
+                      key={index}
+                      className={`thumbnail-card ${index === currentGraphIndex ? 'active' : ''}`}
+                      onClick={() => setCurrentGraphIndex(index)}
+                    >
+                      <div className="thumbnail">
+                        <img 
+                          src={`data:image/png;base64,${graphs[index]}`}
+                          alt={`Thumbnail ${index + 1}`}
+                        />
+                      </div>
+                      <span className="thumb-label">
+                        {['Competition', 'Path Demand', 'Convergence'][index] || `Graph ${index + 1}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {/* Empty State */}
-        {graphs.length === 0 && !animation && !isRunning && !error && (
+        {graphs.length === 0 && !animation && !networkData && !isRunning && !error && (
           <div className="empty-state">
             <div className="empty-visual">
               <div className="empty-circle">

@@ -6,8 +6,12 @@ import os
 from io import StringIO
 
 # Parse command-line arguments for simulation parameters
+# Usage: python run_simulation.py [duration] [points] [simulation_type]
+# simulation_type: 'tc7' (default, 4-node 2-station) or 'tc9' (9-node 4-station)
 t_final_arg = None
 n_points_arg = None
+sim_type_arg = 'tc7'  # default
+
 if len(sys.argv) > 1:
     try:
         t_final_arg = float(sys.argv[1])
@@ -18,13 +22,37 @@ if len(sys.argv) > 2:
         n_points_arg = int(sys.argv[2])
     except (ValueError, IndexError):
         pass
+if len(sys.argv) > 3:
+    sim_type_arg = sys.argv[3].lower().strip()
 
 # Add current directory to path to import ev_tc_7
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# Setup matplotlib for better graph quality
 import matplotlib
-matplotlib.use('Agg')  # Non-interactive backend
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+
+# Set style for brighter, cleaner graphs
+plt.rcParams.update({
+    'figure.facecolor': 'white',
+    'axes.facecolor': 'white',
+    'axes.edgecolor': '#333333',
+    'axes.labelcolor': '#333333',
+    'axes.titleweight': 'bold',
+    'axes.grid': True,
+    'grid.alpha': 0.3,
+    'grid.color': '#cccccc',
+    'xtick.color': '#333333',
+    'ytick.color': '#333333',
+    'text.color': '#333333',
+    'font.size': 11,
+    'axes.titlesize': 13,
+    'axes.labelsize': 11,
+    'legend.framealpha': 0.9,
+    'legend.fontsize': 10,
+    'lines.linewidth': 2.5,
+})
 
 # Capture all plots as base64 encoded images
 captured_figures = []
@@ -40,8 +68,10 @@ def save_current_figure():
         
         # Skip if no figure is active
         if fig.get_axes():
+            # Set larger figure size for better web display
+            fig.set_size_inches(16, 12)
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', bbox_inches='tight', dpi=100)
+            plt.savefig(buffer, format='png', bbox_inches='tight', dpi=150, facecolor='white')
             buffer.seek(0)
             image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
             captured_figures.append(image_base64)
@@ -64,11 +94,16 @@ try:
     sys.stdout = StringIO()
     sys.stderr = StringIO()
     
-    # Import and run the simulation (using ev_tc_7 with configurable parameters)
-    from ev_tc_7 import run_simulation
+    # Import and run the simulation based on type parameter
+    if sim_type_arg == 'tc9':
+        from ev_tc_9_web import run_simulation, create_network, enumerate_paths, create_od_demand
+        from ev_tc_9_web import get_station_parameters as get_params
+    else:
+        from ev_tc_7 import run_simulation, create_network_with_charging_stations, enumerate_paths, create_od_demand
+        from ev_tc_7 import get_station_parameters as get_params
     
-    # Run the simulation with provided parameters and save animation
-    run_simulation(save_animation_path=animation_gif_path, t_final=t_final_arg, n_points=n_points_arg)
+    # Run the simulation with provided parameters and save animation, get network data
+    network_data = run_simulation(save_animation_path=animation_gif_path, t_final=t_final_arg, n_points=n_points_arg, return_data=True)
     
     # Restore stdout/stderr
     sys.stdout = old_stdout
@@ -89,7 +124,8 @@ try:
         'success': True,
         'message': f'Simulation completed successfully. Captured {len(captured_figures)} graphs.',
         'graphs': captured_figures,
-        'animation': animation_base64  # Animated GIF as base64
+        'animation': animation_base64,  # Animated GIF as base64
+        'networkData': network_data  # Interactive network data
     }
     print(json.dumps(output))
     
