@@ -702,7 +702,7 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV,
 
     n_cols = 2
     n_rows = (len(plots) + 1) // 2
-    fig, axs = plt.subplots(n_rows, n_cols, figsize=(14, 4*n_rows))
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(18, 5*n_rows))
     fig.suptitle('Path Demand Dynamics (TC9)', fontsize=14, fontweight='bold')
     plt.subplots_adjust(hspace=0.4, wspace=0.3, top=0.92)
     axs = axs.flatten() if len(plots) > 1 else [axs]
@@ -788,7 +788,7 @@ def plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
 
     n_cols = 2
     n_rows = (len(all_res)+1)//2
-    fig, axs = plt.subplots(n_rows, n_cols, figsize=(16, 5*n_rows))
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(18, 6*n_rows))
     fig.suptitle('Replicator Convergence:  tau_avg - tau_p  ->  0',
                  fontsize=16, fontweight='bold')
     plt.subplots_adjust(hspace=0.45, wspace=0.30, top=0.93)
@@ -817,7 +817,7 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations, x_tr
     # Brighter, more vibrant colors
     colors = {'S1': '#FF4136', 'S2': '#0074D9', 'S3': '#2ECC40', 'S4': '#FF851B'}
 
-    fig, axs = plt.subplots(2, 3, figsize=(18, 10))
+    fig, axs = plt.subplots(2, 3, figsize=(20, 12))
     fig.suptitle('Competition Metrics (Dynamic Pricing Game)', fontsize=16, fontweight='bold')
     fig.patch.set_facecolor('white')
 

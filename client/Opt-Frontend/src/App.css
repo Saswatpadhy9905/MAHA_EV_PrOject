@@ -166,9 +166,9 @@ body {
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
-  padding: 50px 32px;
+  padding: 50px 24px;
 }
 
 /* Header Section */
@@ -896,15 +896,15 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 700px;
-  padding: 32px;
+  min-height: 500px;
+  padding: 16px;
   background: white;
   overflow: auto;
 }
 
 .graph-image {
   width: 100%;
-  max-width: 1200px;
+  max-width: 100%;
   height: auto;
   object-fit: contain;
   border-radius: var(--radius-md);

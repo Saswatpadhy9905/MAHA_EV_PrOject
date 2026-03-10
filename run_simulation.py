@@ -69,9 +69,9 @@ def save_current_figure():
         # Skip if no figure is active
         if fig.get_axes():
             # Set larger figure size for better web display
-            fig.set_size_inches(16, 12)
+            fig.set_size_inches(20, 14)
             buffer = io.BytesIO()
-            plt.savefig(buffer, format='png', bbox_inches='tight', dpi=150, facecolor='white')
+            plt.savefig(buffer, format='png', bbox_inches='tight', dpi=120, facecolor='white')
             buffer.seek(0)
             image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
             captured_figures.append(image_base64)

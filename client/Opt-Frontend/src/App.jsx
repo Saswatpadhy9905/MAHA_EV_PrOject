@@ -197,9 +197,7 @@ function App() {
                   type="number"
                   id="duration"
                   value={duration}
-                  onChange={(e) => setDuration(Math.max(10, Math.min(400, parseInt(e.target.value) || 100)))}
-                  min="10"
-                  max="400"
+                  onChange={(e) => setDuration(parseInt(e.target.value) || 100)}
                   disabled={isRunning}
                 />
               </div>
@@ -209,9 +207,7 @@ function App() {
                   type="number"
                   id="points"
                   value={points}
-                  onChange={(e) => setPoints(Math.max(50, Math.min(1000, parseInt(e.target.value) || 400)))}
-                  min="50"
-                  max="1000"
+                  onChange={(e) => setPoints(parseInt(e.target.value) || 400)}
                   disabled={isRunning}
                 />
               </div>
@@ -348,12 +344,12 @@ function App() {
               <div className="graph-viewer">
                 <div className="graph-header">
                   <h3 className="graph-title">
-                    {['Competition Metrics (Dynamic Pricing Game)', 'Path Demand Dynamics', 'Replicator Convergence'][currentGraphIndex] || `Analysis Graph ${currentGraphIndex + 1}`}
+                    {['Path Demand Dynamics', 'Replicator Convergence', 'Competition Metrics (Dynamic Pricing Game)'][currentGraphIndex] || `Analysis Graph ${currentGraphIndex + 1}`}
                   </h3>
                   <p className="graph-subtitle">
-                    {['Market share, pricing strategy, queue lengths, revenue & profit analysis', 
-                      'Path flow distribution across OD pairs for NEV and EV', 
-                      'τ_avg - τ_p convergence to equilibrium'][currentGraphIndex] || 'Simulation results visualization'}
+                    {['Path flow distribution across OD pairs for NEV and EV', 
+                      'τ_avg - τ_p convergence to equilibrium', 
+                      'Market share, pricing strategy, queue lengths, revenue & profit analysis'][currentGraphIndex] || 'Simulation results visualization'}
                   </p>
                 </div>
                 <div className="graph-display">
@@ -408,7 +404,7 @@ function App() {
                         />
                       </div>
                       <span className="thumb-label">
-                        {['Competition', 'Path Demand', 'Convergence'][index] || `Graph ${index + 1}`}
+                        {['Path Demand', 'Convergence', 'Competition'][index] || `Graph ${index + 1}`}
                       </span>
                     </div>
                   ))}

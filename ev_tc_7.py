@@ -572,7 +572,7 @@ def run_simulation(save_animation_path=None, t_final=None, n_points=None, return
     
     print("   [VIZ 2/4] Path demands...")
     plot_path_demands(t_all, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
-                     lambda_od_EV, lambda_od_NEV)
+                     lambda_od_EV, lambda_od_NEV, idx_to_edge, G)
     
     print("   [VIZ 3/4] Replicator convergence...")
     plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
@@ -771,11 +771,21 @@ def create_network_animation(G, x_traj, t, idx_to_edge, charging_stations, get_p
     # Close figure without calling plt.show() to avoid capturing empty frame
     plt.close('all')
 
+
+def od_label(od, idx_to_edge, G):
+    """Get human-readable OD label"""
+    u0, v0, k0 = idx_to_edge[od[0]]
+    u1, v1, k1 = idx_to_edge[od[1]]
+    on = G[u0][v0][k0].get('origin_id', u0)
+    dn = G[u1][v1][k1].get('dest_id', u1)
+    return on, dn
+
+
 def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, od_pairs_NEV,
-                     lambda_od_EV, lambda_od_NEV):
+                     lambda_od_EV, lambda_od_NEV, idx_to_edge, G):
     """Plot path demand evolution"""
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
-    fig.suptitle('Path Demand Dynamics', fontsize=14, fontweight='bold')
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
+    fig.suptitle('Path Demand Dynamics', fontsize=16, fontweight='bold')
     
     # Bright vibrant colors
     bright_colors = ['#1E90FF', '#FF8C00', '#32CD32', '#DC143C', '#9932CC', '#00CED1', '#FF1493']
@@ -789,9 +799,10 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, 
                     color=bright_colors[p_idx % len(bright_colors)])
             idx += 1
     
+    on, dn = od_label(od_pairs_NEV[0], idx_to_edge, G) if od_pairs_NEV else ('O', 'D')
     ax1.axhline(y=lambda_od_NEV[od_pairs_NEV[0]], color='#DC143C', linestyle='--', linewidth=2.5,
                label=f'Total Demand={lambda_od_NEV[od_pairs_NEV[0]]:.2f}')
-    ax1.set_title('NEV: O1 -> D1')
+    ax1.set_title(f'NEV: {on} -> {dn}')
     ax1.set_xlabel('Time')
     ax1.set_ylabel('Path Flow')
     ax1.legend()
@@ -806,9 +817,10 @@ def plot_path_demands(t, y_EV_all, y_NEV_all, paths_EV, paths_NEV, od_pairs_EV, 
                     color=bright_colors[p_idx % len(bright_colors)])
             idx += 1
     
+    on, dn = od_label(od_pairs_EV[0], idx_to_edge, G) if od_pairs_EV else ('O', 'D')
     ax2.axhline(y=lambda_od_EV[od_pairs_EV[0]], color='#DC143C', linestyle='--', linewidth=2.5,
                label=f'Total Demand={lambda_od_EV[od_pairs_EV[0]]:.2f}')
-    ax2.set_title('EV: O1 -> D1')
+    ax2.set_title(f'EV: {on} -> {dn}')
     ax2.set_xlabel('Time')
     ax2.set_ylabel('Path Flow')
     ax2.legend()
@@ -866,8 +878,8 @@ def plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
                 tau_p  = np.array(tau_p)
                 tau_avg= (y_n*tau_p).sum() / max(lam,1e-12)
                 gaps[:, ti] = tau_avg - tau_p
-            # Simple title using OD tuple (link IDs in TC-7)
-            results.append(dict(title=f'{vcls}: O->D', gaps=gaps))
+            on, dn = od_label(od, idx_to_edge, G)
+            results.append(dict(title=f'{vcls}: {on} -> {dn}', gaps=gaps))
             pidx += np_od
         return results
 
@@ -878,7 +890,7 @@ def plot_cost_convergence(t_all, x_all, y_EV_all, y_NEV_all,
 
     n_cols = 2
     n_rows = (len(all_res)+1)//2
-    fig, axs = plt.subplots(n_rows, n_cols, figsize=(16, 5*n_rows))
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(18, 6*n_rows))
     fig.suptitle('Replicator Convergence:  tau_avg - tau_p  ->  0',
                  fontsize=16, fontweight='bold')
     plt.subplots_adjust(hspace=0.45, wspace=0.30, top=0.93)
@@ -907,8 +919,8 @@ def plot_charging_station_metrics(q_s_traj, p_s_traj, t, charging_stations,
     n_stations = len(charging_stations)
     station_ids = sorted(charging_stations.keys())
     
-    fig, axs = plt.subplots(2, 3, figsize=(18, 10))
-    fig.suptitle('Competition Metrics (Dynamic Pricing Game)', fontsize=16, fontweight='bold')
+    fig, axs = plt.subplots(2, 3, figsize=(20, 12))
+    fig.suptitle('Competition Metrics (Dynamic Pricing Game)', fontsize=18, fontweight='bold')
     fig.patch.set_facecolor('white')
     
     # Bright vibrant colors
