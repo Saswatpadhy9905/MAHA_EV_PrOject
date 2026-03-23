@@ -3,8 +3,10 @@ import './App.css'
 import GifPlayer from './GifPlayer'
 import InteractiveNetworkPlayer from './InteractiveNetworkPlayer'
 
-// API URL - uses environment variable in production, localhost in development
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
+// API URL selection:
+// - Development: localhost backend
+// - Production: same-origin /api unless VITE_API_URL is explicitly set
+const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '/api')
 
 function App() {
   const [isRunning, setIsRunning] = useState(false)

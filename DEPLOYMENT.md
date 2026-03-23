@@ -176,3 +176,70 @@ imageio
 ### With Custom Domain (example)
 - **Frontend**: https://yourdomain.com
 - **Backend**: https://api.yourdomain.com
+
+---
+
+## IIT KGP Server Deployment (SFTP/SSH, Port 5100)
+
+Use this flow when deploying to the institute-managed server (`academicweb.iitkgp.ac.in`) and test URL.
+
+### Prerequisites
+
+- A whitelisted machine configured with the network IP settings provided by the institute team.
+- Access credentials for SSH/SFTP.
+- Installed tools: Node.js, Python 3, WinSCP (or FileZilla), and SSH client (PuTTY or OpenSSH).
+
+### 1) Prepare Upload Bundle Locally
+
+From project root:
+
+```bat
+PREP_IIT_UPLOAD.bat
+```
+
+Or on Linux/macOS:
+
+```bash
+chmod +x PREP_IIT_UPLOAD.sh
+./PREP_IIT_UPLOAD.sh
+```
+
+This creates:
+
+- `deploy_iit/frontend` (ready static files)
+- `deploy_iit/backend` (Node + Python runtime files)
+
+### 2) Upload Files via SFTP
+
+- Upload `deploy_iit/frontend/*` to the website document root provided by the admin team.
+- Upload `deploy_iit/backend/*` to your application runtime directory on the server.
+
+### 3) Start Backend on Required Port 5100
+
+SSH into server and run from backend directory:
+
+```bash
+bash start_backend_5100.sh
+```
+
+On Windows shell:
+
+```bat
+start_backend_5100.bat
+```
+
+Backend will run with:
+
+- `PORT=5100`
+- `NODE_ENV=production`
+
+### 4) Test
+
+- Check backend health: `http://<server-or-proxy>/health`
+- Test frontend URL provided by admin team (for example test URL)
+- Run one simulation from UI and verify graphs/animation load.
+
+### 5) Reverse Proxy Note
+
+Frontend is configured for production API path `/api` by default.
+Ask admin team to route `/api/*` to backend service running on port `5100`.

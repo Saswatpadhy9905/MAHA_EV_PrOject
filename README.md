@@ -1,196 +1,322 @@
-# EV Charging Station Simulation - Web Application
+# EV Charging Station Simulation Platform
 
-A full-stack web application that runs a Python-based EV charging station competition simulation and displays the results as interactive graphs.
+Full-stack web platform for EV traffic-flow and charging-station competition simulation.
 
-## Project Structure
+It combines:
+- React frontend (`client/Opt-Frontend`)
+- Node.js API backend (`server/server.js`)
+- Python simulation engine (`run_simulation.py`, `ev_tc_7.py`, `ev_tc_9_web.py`)
 
-```
+## What This Project Does
+
+1. Runs a simulation from the browser with configurable parameters.
+2. Executes Python simulation logic from the Node backend.
+3. Returns three result formats:
+- Interactive network data (playable timeline)
+- Animated network GIF
+- Static analytical plots
+4. Shows all results in one UI with mode switching.
+
+## Main Features
+
+- Two simulation network types:
+- `tc7`: 4-node, 2-station network
+- `tc9`: 9-node, 4-station network
+- Configurable run parameters from frontend:
+- `duration` (seconds)
+- `points` (time samples)
+- Three result views:
+- Interactive network player (timeline + draggable nodes)
+- GIF player with playback controls
+- Static graphs with next/previous navigation + thumbnails
+- Backend health endpoint and simulation endpoint
+- CORS-enabled API for hosted deployments
+- Production API base-path support (`/api`) for reverse-proxy setups
+
+## Tech Stack
+
+- Frontend: React + Vite
+- Backend: Express (Node.js)
+- Simulation: Python, NumPy, SciPy, NetworkX, Matplotlib
+
+## Repository Structure
+
+```text
 opt/
-├── ev_tc_2.py              # Main Python simulation code
-├── run_simulation.py        # Wrapper to run simulation and output graphs
-├── client/
-│   └── Opt-Frontend/       # React frontend
-│       ├── src/
-│       │   ├── App.jsx     # Main React component
-│       │   ├── App.css     # Styling
-│       │   ├── main.jsx
-│       │   └── index.css
-│       ├── package.json
-│       ├── vite.config.js
-│       └── index.html
-└── server/
-    ├── server.js           # Express backend
-    └── package.json
+|-- client/
+|   `-- Opt-Frontend/
+|       |-- src/
+|       |   |-- App.jsx
+|       |   |-- GifPlayer.jsx
+|       |   `-- InteractiveNetworkPlayer.jsx
+|       |-- .env.production
+|       `-- package.json
+|-- server/
+|   |-- server.js
+|   `-- package.json
+|-- ev_tc_7.py
+|-- ev_tc_9_web.py
+|-- run_simulation.py
+|-- requirements.txt
+|-- render.yaml
+|-- PREP_IIT_UPLOAD.bat
+`-- PREP_IIT_UPLOAD.sh
 ```
 
 ## Prerequisites
 
-- **Node.js** (v14 or higher)
-- **Python** (v3.8 or higher)
-- Python packages: `networkx`, `numpy`, `matplotlib`, `scipy`
+- Node.js 18+ (recommended)
+- npm
+- Python 3.10+ (3.11/3.12 also fine)
+- pip
 
-## Installation
+Install Python dependencies:
 
-### Backend Setup
-
-1. Navigate to the server directory:
 ```bash
+pip install -r requirements.txt
+```
+
+## Local Setup (Step-by-Step)
+
+### 1) Clone and install dependencies
+
+```bash
+git clone <your-repo-url>
+cd opt
+
 cd server
-```
-
-2. Install Node dependencies:
-```bash
 npm install
-```
+cd ..
 
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-```bash
 cd client/Opt-Frontend
-```
-
-2. Install Node dependencies:
-```bash
 npm install
+cd ../..
+
+pip install -r requirements.txt
 ```
 
-### Python Dependencies
+### 2) Run backend
 
-Install required Python packages:
-```bash
-pip install networkx numpy matplotlib scipy
-```
-
-## Running the Application
-
-### Option 1: Run in Separate Terminals
-
-**Terminal 1 - Start Backend Server:**
 ```bash
 cd server
 npm start
 ```
-The server will run on `http://localhost:3000`
 
-**Terminal 2 - Start Frontend Development Server:**
+Backend runs at `http://localhost:3000` by default.
+
+### 3) Run frontend
+
+Open a second terminal:
+
 ```bash
 cd client/Opt-Frontend
 npm run dev
 ```
-The frontend will typically run on `http://localhost:5173`
 
-### Option 2: Using VS Code Tasks (Recommended)
+Frontend usually runs at `http://localhost:5173`.
 
-Configure VS Code tasks to run both servers simultaneously. Create a `.vscode/tasks.json` file with compound tasks.
+### 4) Use the app
 
-## How to Use
+1. Choose `TC-7` or `TC-9`.
+2. Set `Duration` and `Time Points`.
+3. Click `Run Simulation`.
+4. Switch between `Interactive`, `Animation`, and `Graphs` views.
 
-1. Open your browser and navigate to the frontend URL (typically `http://localhost:5173`)
-2. Click the **"Run Simulation"** button
-3. The Python simulation will execute on the backend
-4. Once complete, the generated graphs will be displayed
-5. Use the navigation buttons to browse through different graphs
-6. Click on thumbnails at the bottom to jump to a specific graph
+## API Behavior and Data Flow
 
-## Features
+### Endpoint
 
-- **Automatic Graph Generation**: Runs Python simulation and converts outputs to images
-- **Interactive Graph Viewer**: 
-  - Navigate between graphs with Previous/Next buttons
-  - Click thumbnails to jump to specific graphs
-  - View graph counter showing current position
-- **Error Handling**: Clear error messages if simulation fails
-- **Responsive Design**: Works on desktop and mobile devices
-- **Real-time Feedback**: Shows loading spinner during execution
+- `GET /health` -> basic health/version
+- `POST /api/run-simulation` -> executes Python simulation
 
-## Graph Outputs
+Sample request:
 
-The simulation generates 4 graphs:
-
-1. **Network Animation** - Shows traffic flow and vehicle movement
-2. **Path Demands** - Illustrates demand distribution across routes
-3. **Link Densities** - Displays traffic density evolution over time
-4. **Charging Station Metrics** - Shows queue lengths, waiting times, utilization rates, and market share
-
-## Troubleshooting
-
-### "Connection refused" Error
-- Ensure the backend server is running on port 3000
-- Check that no other service is using port 3000
-- Verify CORS is enabled in server.js
-
-### "Python not found" Error
-- Verify Python is installed: `python --version`
-- Ensure Python is in your system PATH
-- Try using `python3` instead of `python`
-
-### Missing Python Dependencies
-```bash
-pip install networkx numpy matplotlib scipy
+```json
+{
+  "duration": 70,
+  "points": 400,
+  "simType": "tc9"
+}
 ```
 
-### Graphs Not Displaying
-1. Check browser console for errors (F12 → Console tab)
-2. Check server logs for Python errors
-3. Verify all Python dependencies are installed
-4. Ensure simulation completes without errors
+Response shape (successful):
 
-## Development
-
-### Modifying the Simulation
-
-Edit `ev_tc_1.py` to change:
-- Network topology
-- Demand parameters
-- Charging station configurations
-- Simulation parameters (T_FINAL, N_TIME_POINTS, etc.)
-
-### Customizing the UI
-
-Edit `client/Opt-Frontend/src/App.jsx` and `App.css` to customize:
-- Colors and styling
-- Button labels
-- Graph layout and sizing
-- Error messages
-
-## API Endpoints
-
-### POST `/api/run-simulation`
-
-Executes the Python simulation and returns graph images.
-
-**Response:**
 ```json
 {
   "success": true,
-  "message": "Simulation completed successfully",
-  "graphs": [
-    "base64_encoded_image_1",
-    "base64_encoded_image_2",
-    ...
-  ]
+  "data": {
+    "success": true,
+    "message": "Simulation completed successfully...",
+    "graphs": ["base64png..."],
+    "animation": "base64gif...",
+    "networkData": {
+      "nodes": [],
+      "edges": [],
+      "timePoints": [],
+      "densities": [],
+      "stationPrices": {},
+      "duration": 70
+    }
+  }
 }
 ```
 
-**Error Response:**
-```json
-{
-  "success": false,
-  "message": "Error description",
-  "graphs": []
-}
+### Runtime path
+
+1. Frontend sends POST to backend.
+2. Node backend spawns `python run_simulation.py <duration> <points> <simType>`.
+3. Python collects plots/GIF/data and returns JSON.
+4. Frontend renders returned datasets.
+
+## Environment Variables
+
+### Frontend
+
+- `VITE_API_URL`
+
+Current production default is `'/api'`, which is suitable when a reverse proxy maps `/api/*` to backend.
+
+`App.jsx` fallback logic:
+- Dev -> `http://localhost:3000`
+- Prod -> `/api` if `VITE_API_URL` is unset
+
+### Backend
+
+- `PORT` (default: `3000`)
+- `NODE_ENV`
+- `CORS_ORIGIN` (default: `*`)
+
+For institute deployment, use `PORT=5100`.
+
+## Deployment Options
+
+## 1) Render Deployment
+
+The repo includes `render.yaml`.
+
+- Backend service: Node runtime
+- Frontend service: Static site (Vite build)
+
+Steps:
+1. Connect repo in Render.
+2. Create Blueprint from `render.yaml`.
+3. Set frontend `VITE_API_URL` if needed.
+4. Deploy.
+
+## 2) IIT KGP Server Deployment (SFTP/SSH)
+
+This is the flow for your institute-managed environment.
+
+### A) Prepare deployment bundle (on your current PC)
+
+Windows:
+
+```bat
+PREP_IIT_UPLOAD.bat
 ```
 
-## Performance Notes
+Linux/macOS:
 
-- First run may take 10-30 seconds depending on system performance
-- Simulation time depends on:
-  - Network complexity
-  - Number of paths enumerated
-  - Time points (N_TIME_POINTS parameter)
-  - Solver tolerance settings
+```bash
+chmod +x PREP_IIT_UPLOAD.sh
+./PREP_IIT_UPLOAD.sh
+```
 
-## License
+This generates:
+- `deploy_iit/frontend` (ready static files)
+- `deploy_iit/backend` (runtime files + start script)
 
-This project is provided as-is for educational and research purposes.
+### B) Upload from whitelisted PC
+
+1. Configure network on that PC with institute-provided IP details.
+2. Use WinSCP/FileZilla to connect to `academicweb.iitkgp.ac.in`.
+3. Upload:
+- `deploy_iit/frontend/*` -> web root directory
+- `deploy_iit/backend/*` -> backend runtime directory
+
+### C) Start backend on port 5100
+
+SSH into server and run in backend directory:
+
+Linux shell:
+
+```bash
+bash start_backend_5100.sh
+```
+
+Windows shell:
+
+```bat
+start_backend_5100.bat
+```
+
+### D) Reverse proxy requirement
+
+Ask admin team to route `/api/*` to backend service on port `5100`.
+
+### E) Test
+
+1. Health endpoint works.
+2. Frontend loads in test URL.
+3. Simulation runs for both `tc7` and `tc9`.
+
+## Quick Commands
+
+### Full local run (manual)
+
+```bash
+# terminal 1
+cd server && npm start
+
+# terminal 2
+cd client/Opt-Frontend && npm run dev
+```
+
+### Stop Node processes on Windows (if port is stuck)
+
+```powershell
+Get-Process -Name node -ErrorAction SilentlyContinue | Stop-Process -Force
+```
+
+## Troubleshooting
+
+### Frontend says backend not reachable
+
+- Ensure backend is running.
+- Confirm API URL used by frontend (`VITE_API_URL` / fallback).
+- Check browser network tab for failing URL.
+
+### `Python script failed` from backend
+
+- Verify Python exists in PATH.
+- Verify dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+- Run direct test:
+
+```bash
+python run_simulation.py 70 400 tc7
+python run_simulation.py 70 400 tc9
+```
+
+### Port conflict on 3000 or 5100
+
+- Change `PORT` env var, or stop process using that port.
+
+### Graphs empty or animation missing
+
+- Check backend logs for JSON parse or matplotlib errors.
+- Reduce `points` temporarily and retry.
+
+## Security Notes
+
+- Never commit credentials/passwords in repo.
+- If credentials were shared in screenshots/chat, rotate them.
+- Use `.env` files or server secret manager for sensitive values.
+
+## Credits
+
+Developed by Saswat Padhy, Kshitij Mehta, and Aaditya Chari.
